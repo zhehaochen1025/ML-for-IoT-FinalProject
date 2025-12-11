@@ -1,0 +1,86 @@
+########################
+# Python
+########################
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# 虚拟环境
+.venv/
+venv/
+env/
+ENV/
+.python-env/
+
+########################
+# Jupyter
+########################
+.ipynb_checkpoints/
+*.ipynb_convert/
+
+########################
+# Logs / 临时文件
+########################
+*.log
+logs/
+tmp/
+temp/
+
+########################
+# 编译 / C / CMake / Arduino
+########################
+build/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+*.o
+*.obj
+*.a
+*.out
+*.elf
+*.bin
+*.hex
+
+# Arduino / PlatformIO 之类
+.pio/
+.pioenvs/
+.arduino*/
+*.ino.cpp
+
+########################
+# 数据 / 模型（可按需调整）
+########################
+# 大型原始数据（如果你要一起开发，可以只放小样本）
+data/raw/
+data/interim/
+data/tmp/
+datasets/
+*.csv
+*.tsv
+
+# 训练中间结果 / 模型权重（需要放到仓库的话可以注释掉）
+checkpoints/
+runs/
+saved_models/
+*.h5
+*.hdf5
+*.ckpt
+*.tflite
+
+########################
+# IDE / 编辑器
+########################
+# VSCode
+.vscode/
+
+# PyCharm / IntelliJ
+.idea/
+
+# 通用
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
