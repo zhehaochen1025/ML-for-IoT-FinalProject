@@ -67,14 +67,11 @@ static const int NN_def[] = {first_layer_input_cnt, 20, classes_cnt};
 /* ------- END CONFIG ------- */
 
 // Training and Validation data
-#if USE_BIASED_DATASETS && DEVICE_TYPE == LEADER
-#include "cnn_data_biased_1.h"  
-#elif USE_BIASED_DATASETS && DEVICE_TYPE == WORKER
-#include "cnn_data_biased_2.h"
-#else
-#include "cnn_data.h"  
+#if DEVICE_TYPE == LEADER
+#include "data_czh.h"  
+#elif DEVICE_TYPE == WORKER
+#include "data_fje.h"
 #endif
-    
 #include "NN_functions.h" // Neural Network specific functions and definitions
 
 #if DEVICE_TYPE == LEADER

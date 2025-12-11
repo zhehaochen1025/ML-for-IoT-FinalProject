@@ -248,7 +248,7 @@ void generateTrainVectors(int indx) {
 	hat_y[ train_labels[ indxArray[indx] ] ] = 1.0;
 
 	for (int j = 0; j < IN_VEC_SIZE; j++) {
-		input[j] = cnn_train_data[ indxArray[indx] ][j];
+		input[j] = train_data[ indxArray[indx] ][j];
 	}
 
 }
@@ -282,7 +282,7 @@ void printAccuracy()
   for (int i = 0; i < numTrainData; i++) {
     int maxIndx = 0;
     for (int j = 0; j < IN_VEC_SIZE; j++) {
-      input[j] = cnn_train_data[i][j];
+      input[j] = train_data[i][j];
     }
 
     forwardProp();
@@ -304,7 +304,7 @@ void printAccuracy()
   for (int i = 0; i < numValData; i++) {
     int maxIndx = 0;
     for (int j = 0; j < IN_VEC_SIZE; j++) {
-      input[j] = cnn_validation_data[i][j];
+      input[j] = validation_data[i][j];
     }
 
     forwardProp();
@@ -326,7 +326,7 @@ void printAccuracy()
   for (int i = 0; i < numTestData; i++) {
     int maxIndx = 0;
     for (int j = 0; j < IN_VEC_SIZE; j++) {
-      input[j] = cnn_test_data[i][j];
+      input[j] = test_data[i][j];
     }
 
     forwardProp();

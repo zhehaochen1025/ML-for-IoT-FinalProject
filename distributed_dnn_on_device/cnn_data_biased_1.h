@@ -4,10 +4,10 @@ const int first_layer_input_cnt = 75;
 const int train_data_cnt = 48;
 const int validation_data_cnt = 27;
 const int test_data_cnt = 12;
-const int classes_cnt = 3;
+const int classes_cnt = 4;
 
-const char* classes[3] = {
-  "Maria", "Nikhil", "Simon"
+const char* classes[4] = {
+  "Maria", "Nikhil", "Simon", "Class4"
 };
 
 const int train_labels[48] = {
