@@ -1,0 +1,457 @@
+\documentclass{beamer}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{mathpazo}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\usetheme{Copenhagen}
+\usecolortheme{seahorse}
+\usefonttheme{serif}
+
+% 顶部 section 导航条
+\setbeamertemplate{headline}{
+  \leavevmode
+  \hbox{
+    \begin{beamercolorbox}[wd=\paperwidth,ht=2.5ex,dp=1ex,leftskip=1em]{section in head/foot}
+      \insertsectionnavigationhorizontal{\paperwidth}{}{}
+    \end{beamercolorbox}
+  }
+}
+
+\title{Federated On-Device Training on Arduino Nano 33 BLE}
+\author{Zhehao Chen}
+\date{December 2025}
+
+\begin{document}
+
+% ===================== Title =====================
+\begin{frame}
+  \titlepage
+\end{frame}
+
+% ===================== Outline =====================
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
+
+% ===================== Section 1: Motivation =====================
+\section{Motivation \& Task}
+
+\begin{frame}{Project Context}
+  \begin{itemize}
+    \item Course: \textbf{Machine Learning for IoT}.
+    \item Hardware: \textbf{Arduino Nano 33 BLE} + TinyML Shield.
+    \item Sensors: \textbf{IMU} -- accelerometer, gyroscope, orientation.
+    \item Target task: classify IMU segments into multiple classes
+      (e.g., gestures / movements in ``Spell Game'').
+    \item Constraint: training \textbf{directly on the board}
+      with very limited RAM and compute.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Why Federated Learning on Tiny Devices?}
+  \begin{itemize}
+    \item In many IoT scenarios, there are \textbf{multiple devices}
+      observing related data distributions.
+    \item Sending raw sensor data to a server is:
+      \begin{itemize}
+        \item Bandwidth expensive.
+        \item Potentially privacy sensitive.
+      \end{itemize}
+    \item Federated learning idea:
+      \begin{itemize}
+        \item Each device trains a \textbf{local model} on its own data.
+        \item Devices only exchange \textbf{model parameters}, not raw data.
+      \end{itemize}
+    \item Question: \textbf{Can we implement a simple federated scheme
+      directly between two Nano 33 BLE boards?}
+  \end{itemize}
+\end{frame}
+
+% ===================== Section 2: Data & Features =====================
+\section{Data \& Feature Extraction}
+
+\begin{frame}{Raw Data from Edge Impulse}
+  \begin{itemize}
+    \item Data collected with Edge Impulse pipeline.
+    \item Stored as \texttt{.cbor} messages:
+      \begin{itemize}
+        \item Payload includes: \texttt{interval\_ms}, \texttt{sensors}, \texttt{values}.
+        \item Each sample: around \textbf{2000 ms}, sampled at \textbf{100 Hz}.
+      \end{itemize}
+    \item Shape of \texttt{values}:
+      \[
+        (T, 9) \approx (201, 9),
+      \]
+      where 9 channels are (accel, gyro, orientation).
+  \end{itemize}
+  \vspace{0.5em}
+  \centering
+  % \includegraphics[width=0.7\textwidth]{raw_cbor_example.pdf}
+  {\small \textit{\% Placeholder for raw CBOR / time-series visualization}}
+\end{frame}
+
+\begin{frame}{Why Not Use Raw 201 $\times$ 9 Data on Board?}
+  \begin{itemize}
+    \item Flattened vector length: $201 \times 9 = 1809$ features.
+    \item With 32-bit floats, a single sample already takes:
+      \[
+        1809 \times 4 \approx 7.1\ \text{kB}.
+      \]
+    \item On-device training uses:
+      \begin{itemize}
+        \item Training data buffer.
+        \item Network weights and gradients.
+        \item Stacks, BLE buffers, etc.
+      \end{itemize}
+    \item Conclusion: \textbf{too large} for robust on-board training.
+    \item Solution: \textbf{compress each segment into 75 scalar features}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{75-D Feature Extraction (Python)}
+  \small
+  \begin{itemize}
+    \item For each segment $v \in \mathbb{R}^{T \times 9}$:
+      \begin{itemize}
+        \item Global statistics per channel (9 dims):
+          \begin{itemize}
+            \item mean, std, min, max $\Rightarrow 9 \times 4 = 36$.
+          \end{itemize}
+        \item Split time into 3 segments:
+          \begin{itemize}
+            \item mean in each segment $\Rightarrow 3 \times 9 = 27$.
+          \end{itemize}
+        \item Per-channel energy:
+          \[
+            \text{energy} = \frac{1}{T} \sum_{t} v_{t,c}^2
+            \Rightarrow 9\ \text{dims}.
+          \]
+        \item Magnitude RMS for 3 groups (accel / gyro / orientation):
+          \[
+            \text{RMS}_{\text{acc}},\ \text{RMS}_{\text{gyro}},\ \text{RMS}_{\text{ori}}
+            \Rightarrow 3\ \text{dims}.
+          \]
+      \end{itemize}
+    \item Total: $36 + 27 + 9 + 3 = \mathbf{75}$ features per sample.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Train / Val / Test Split}
+  \begin{itemize}
+    \item Python preprocessing:
+      \begin{itemize}
+        \item Read all \texttt{training} and \texttt{testing} \texttt{.cbor} files.
+        \item Convert to $X \in \mathbb{R}^{N \times 75}$, label vector $y$.
+        \item Map label names (e.g., \texttt{circle}, \texttt{noise}) to integers.
+        \item Randomly shuffle and split into:
+          \begin{itemize}
+            \item Train.
+            \item Validation.
+            \item Test.
+          \end{itemize}
+      \end{itemize}
+    \item Store as \texttt{.npz} for PC training and also export as \texttt{data.h} for Arduino.
+  \end{itemize}
+
+  \vspace{0.5em}
+  \centering
+  % \includegraphics[width=0.8\textwidth]{split_barplot.pdf}
+  {\small \textit{\% Placeholder for class distribution / split visualization}}
+\end{frame}
+
+% ===================== Section 3: On-Device NN =====================
+\section{On-Device Neural Network}
+
+\begin{frame}{Network Architecture on Nano 33 BLE}
+  \begin{itemize}
+    \item Simple fully connected network:
+    \[
+      75 \rightarrow 64 \rightarrow \text{classes\_cnt}.
+    \]
+    \item Activation:
+      \begin{itemize}
+        \item Hidden layer: ReLU.
+        \item Output layer: softmax.
+      \end{itemize}
+    \item Loss:
+      \begin{itemize}
+        \item Cross-entropy between predicted probabilities and one-hot labels.
+      \end{itemize}
+    \item Implemented in C with:
+      \begin{itemize}
+        \item Manually allocated layers and neurons.
+        \item Forward and backward propagation using SGD.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{On-Device Data \& Normalization}
+  \begin{itemize}
+    \item \texttt{data.h} contains:
+      \begin{itemize}
+        \item \texttt{train\_data[train\_cnt][75]}.
+        \item \texttt{validation\_data[val\_cnt][75]}.
+        \item \texttt{test\_data[test\_cnt][75]}.
+        \item \texttt{train\_labels}, \texttt{validation\_labels}, \texttt{test\_labels}.
+        \item Feature-wise \texttt{feature\_min[75]}, \texttt{feature\_max[75]} from train set.
+      \end{itemize}
+    \item Before feeding to the network (on board):
+      \[
+        x'_j = \frac{x_j - \text{feature\_min}_j}
+                     {\text{feature\_max}_j - \text{feature\_min}_j}.
+      \]
+    \item Normalization is implemented as a small C function
+      operating on the \texttt{input[]} buffer.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Baseline: Local On-Device Training}
+  \begin{itemize}
+    \item Optimizer: \textbf{SGD} with fixed learning rate.
+    \item Example parameters:
+      \begin{itemize}
+        \item \texttt{\#define LEARNING\_RATE 0.0015}
+        \item \texttt{\#define EPOCH 50}
+      \end{itemize}
+    \item Training loop on board:
+      \begin{itemize}
+        \item Shuffle training indices.
+        \item For each sample:
+          \begin{enumerate}
+            \item Load feature vector into \texttt{input[]}.
+            \item Normalize using \texttt{feature\_min/max}.
+            \item Forward propagation.
+            \item Backward propagation, update weights.
+          \end{enumerate}
+      \end{itemize}
+    \item Accuracy monitored on train / val / test after each epoch.
+  \end{itemize}
+\end{frame}
+
+% ===================== Section 4: Federated Learning Design =====================
+\section{Federated Learning Design}
+
+\begin{frame}{From Single Board to Federated Setup}
+  \begin{itemize}
+    \item We have (at least) \textbf{two} Nano 33 BLE boards:
+      \begin{itemize}
+        \item Each board has its own local dataset
+          (e.g., different users / recording sessions).
+      \end{itemize}
+    \item Idea:
+      \begin{itemize}
+        \item Each board trains locally for several epochs.
+        \item Boards use BLE to \textbf{exchange network weights}.
+        \item Then \textbf{average} the weights as a simple
+          federated aggregation.
+      \end{itemize}
+    \item No raw sensor data is transmitted.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Parameter Packing for BLE}
+  \begin{itemize}
+    \item In the C code, the network is represented as:
+      \begin{itemize}
+        \item Layers $L[i]$.
+        \item Neurons with weight vector \texttt{W[]} and bias \texttt{B}.
+      \end{itemize}
+    \item Function \texttt{packUnpackVector(Type)}:
+      \begin{itemize}
+        \item \texttt{PACK}: serialize all weights and biases into
+          a flat \texttt{WeightBiasPtr[]} buffer.
+        \item \texttt{UNPACK}: read back from buffer to local network.
+        \item \texttt{AVERAGE}: average between received buffer
+          and local network and update both.
+      \end{itemize}
+    \item This buffer is then sent via BLE characteristic(s)
+      between the two boards.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Simple Federated Averaging}
+  \begin{itemize}
+    \item In standard FedAvg:
+      \[
+        w^{(t+1)} = \sum_{k} \frac{n_k}{N} w_k^{(t+1)},
+      \]
+      where $w_k$ is client $k$'s local weights.
+    \item In our prototype with two boards:
+      \begin{itemize}
+        \item Use equal weighting as an approximation:
+          \[
+            w_{\text{new}} = \frac{w_A + w_B}{2}.
+          \]
+        \item Implemented in \texttt{packUnpackVector(AVERAGE)}.
+      \end{itemize}
+    \item Federated round:
+      \begin{enumerate}
+        \item Each board trains locally for some epochs.
+        \item Exchange weight buffers via BLE.
+        \item Average and update local networks.
+      \end{enumerate}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Federated Training Schedule}
+  \begin{itemize}
+    \item Example schedule:
+      \begin{itemize}
+        \item Local epochs per round: $E$ (e.g., 1--5).
+        \item Number of federated rounds: $R$.
+      \end{itemize}
+    \item On each board:
+      \begin{enumerate}
+        \item Repeat local training for $E$ epochs.
+        \item Pack parameters and send to peer via BLE.
+        \item Receive peer parameters into buffer.
+        \item Call \texttt{packUnpackVector(AVERAGE)} to update network.
+      \end{enumerate}
+    \item Trade-off:
+      \begin{itemize}
+        \item Larger $E$: fewer communications, more local drift.
+        \item Smaller $E$: more communication, better synchronization.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+% ===================== Section 5: PC Experiments =====================
+\section{PC Experiments vs On-Device}
+
+\begin{frame}{PC-Side Reference Training (PyTorch)}
+  \begin{itemize}
+    \item Use the same 75-D features and labels in Python:
+      \begin{itemize}
+        \item Network: 75--64--\texttt{classes\_cnt}.
+        \item Loss: cross-entropy.
+        \item Optimizer: \textbf{Adam}.
+      \end{itemize}
+    \item Observations:
+      \begin{itemize}
+        \item Adam with hundreds of epochs can train the network
+          to a good accuracy.
+        \item Simple SGD (without momentum, on the PC) is much harder
+          to tune and converges slowly.
+      \end{itemize}
+    \item PC model acts as an \textbf{upper bound} for the on-device performance.
+  \end{itemize}
+
+  \vspace{0.5em}
+  \centering
+  % \includegraphics[width=0.75\textwidth]{pc_training_curves.pdf}
+  {\small \textit{\% Placeholder for PC training curves (Adam vs SGD)}}
+\end{frame}
+
+\begin{frame}{Comparing Local vs Federated On-Device Training}
+  \begin{itemize}
+    \item Baseline: Each board trains independently on its own data.
+      \begin{itemize}
+        \item May overfit to its own user / recording style.
+      \end{itemize}
+    \item Federated version:
+      \begin{itemize}
+        \item Periodic parameter exchange and averaging.
+        \item Helps share knowledge about different local distributions.
+      \end{itemize}
+    \item Metrics to compare:
+      \begin{itemize}
+        \item Training accuracy on each board.
+        \item Validation / test accuracy using a held-out set (from PC).
+      \end{itemize}
+  \end{itemize}
+
+  \vspace{0.5em}
+  \centering
+  % \includegraphics[width=0.8\textwidth]{fl_vs_local_acc.pdf}
+  {\small \textit{\% Placeholder for accuracy curves: local vs federated}}
+\end{frame}
+
+% ===================== Section 6: Discussion =====================
+\section{Discussion \& Future Work}
+
+\begin{frame}{Limitations}
+  \begin{itemize}
+    \item \textbf{Optimizer}: on-device training uses plain SGD;
+      no Adam or momentum due to:
+      \begin{itemize}
+        \item Code complexity.
+        \item Extra memory for moment estimates.
+      \end{itemize}
+    \item \textbf{Communication}:
+      \begin{itemize}
+        \item BLE bandwidth is limited.
+        \item Transmitting full parameter vector can be slow.
+      \end{itemize}
+    \item \textbf{Scalability}:
+      \begin{itemize}
+        \item Prototype only tested with two boards.
+        \item No central server; logic is peer-to-peer.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Possible Improvements}
+  \begin{itemize}
+    \item On-device optimization:
+      \begin{itemize}
+        \item Implement lightweight variants of Adam / momentum,
+          or adaptive learning rate schedules.
+      \end{itemize}
+    \item Model compression:
+      \begin{itemize}
+        \item Quantize weights / send only deltas to reduce BLE traffic.
+      \end{itemize}
+    \item Protocol:
+      \begin{itemize}
+        \item Generalize from 2 boards to $K$ devices,
+          with either a central aggregator or a gossip protocol.
+      \end{itemize}
+    \item Data:
+      \begin{itemize}
+        \item Collect more user-specific IMU trajectories to better
+          demonstrate personalization + federated averaging.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+% ===================== Section 7: Summary =====================
+\section{Summary}
+
+\begin{frame}{Summary}
+  \begin{itemize}
+    \item Built a \textbf{full pipeline}:
+      \begin{itemize}
+        \item Raw IMU segments $\Rightarrow$ 75-D features.
+        \item Python preprocessing and PC training.
+        \item Exported \texttt{data.h} for on-device training.
+      \end{itemize}
+    \item Implemented a small \textbf{on-device neural network}:
+      \begin{itemize}
+        \item 75--64--\texttt{classes\_cnt}, ReLU + softmax, SGD training.
+      \end{itemize}
+    \item Designed and tested a \textbf{federated learning prototype}:
+      \begin{itemize}
+        \item Two Nano 33 BLE boards exchanging weights via BLE.
+        \item Simple parameter averaging after local training epochs.
+      \end{itemize}
+    \item Demonstrated that even with tight resource constraints,
+      federated ideas can be prototyped on microcontrollers.
+  \end{itemize}
+\end{frame}
+
+% ===================== Thank you =====================
+\begin{frame}
+  \centering
+  \vfill
+  {\Huge Thank you for listening!}
+  \vfill
+\end{frame}
+
+\end{document}
