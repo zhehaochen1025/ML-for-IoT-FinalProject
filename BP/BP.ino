@@ -95,6 +95,13 @@ void loop() {
     // Serial.println("yes, we clicked the button");
     do_training(); // Local training 
     
+  } else if (iter_cnt == EPOCH) {
+    // 训练完成后保存模型
+    Serial.println("\n训练完成！正在保存模型...");
+    saveModel(iter_cnt);
+    Serial.println("模型已保存到串口输出。请复制权重数据。");
+    Serial.println("按复位键重新开始训练。");
+    iter_cnt++;  // 防止重复保存
   }
 
 }

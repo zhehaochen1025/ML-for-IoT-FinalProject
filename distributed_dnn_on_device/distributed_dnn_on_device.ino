@@ -54,7 +54,7 @@ extern const int classes_cnt;
 #define BLE_NBR_WEIGHTS 12
 
 // NN parameters
-#define LEARNING_RATE 0.01
+#define LEARNING_RATE 0.005
 #define EPOCH 50 
 
 // DO NOT TOUCH THE FIRST AND LAST ENTRIES OF BELOW ARRAY, YOU CAN MODIFY ANY OF OTHER ENTRIES
