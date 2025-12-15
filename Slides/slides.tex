@@ -329,32 +329,65 @@
 \end{frame}
 
 % ===================== Section 5: PC Experiments =====================
-\section{PC Experiments vs On-Device}
-
 \begin{frame}{PC-Side Reference Training (PyTorch)}
   \begin{itemize}
-    \item Use the same 75-D features and labels in Python:
+    \item Use exactly the same 75-D feature vectors as on the Arduino:
       \begin{itemize}
-        \item Network: 75--64--\texttt{classes\_cnt}.
-        \item Loss: cross-entropy.
-        \item Optimizer: \textbf{Adam}.
+        \item Dataset merged from all \texttt{.npz} files:
+          about 180 training, 45 validation and 58 test samples, 4 classes.
+        \item Network on PC is identical to on-device network:
+          \[ 75 \rightarrow 64 \rightarrow \texttt{classes\_cnt} \]
+        \item Loss: cross-entropy, optimizer: SGD with \texttt{lr = 0.0015},
+          batch size 1 (to mimic on-device training).
       \end{itemize}
-    \item Observations:
+    \item Results:
       \begin{itemize}
-        \item Adam with hundreds of epochs can train the network
-          to a good accuracy.
-        \item Simple SGD (without momentum, on the PC) is much harder
-          to tune and converges slowly.
+        \item After about 50 epochs, validation accuracy reaches
+          \(\approx 95\%\).
+        \item This PC model is used as an \textbf{upper-bound reference}
+          for on-device learning performance.
       \end{itemize}
-    \item PC model acts as an \textbf{upper bound} for the on-device performance.
-  \end{itemize}
 
-  \vspace{0.5em}
+  \end{itemize}
+\end{frame}
+\begin{frame}
+
   \centering
-  % \includegraphics[width=0.75\textwidth]{pc_training_curves.pdf}
-  {\small \textit{\% Placeholder for PC training curves (Adam vs SGD)}}
+  \includegraphics[width=0.9\textwidth]{figures/training_loss_acc.png}
+
+
+  {\small \textit{PC-side centralized training reaches $\sim$95\% val.\ accuracy in $\sim$50 epochs.}}
 \end{frame}
 
+
+\begin{frame}{Federated Training on PC (MPI + FedAvg)}
+  \begin{itemize}
+    \item Federated set-up (FedAvg):
+      \begin{itemize}
+        \item Each MPI rank $r=1,\dots,K$ loads its local
+          \texttt{client\_r.npz} and trains a local model for
+          \texttt{LOCAL\_EPOCHS} with SGD.
+        \item Rank 0 acts as the server:
+          \begin{itemize}
+            \item broadcasts global weights to all clients,
+            \item gathers updated weights,
+            \item performs weighted averaging (FedAvg),
+            \item evaluates on a held-out validation set and logs accuracy.
+          \end{itemize}
+        \item Hyper-parameters:\\
+          \texttt{NUM\_ROUNDS = 50}, \texttt{LOCAL\_EPOCHS = 1},
+          \texttt{BATCH\_SIZE = 1}, \texttt{LR = 0.0015}.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/fig_central_vs_fed.png}
+\end{frame}
+
+
+\begin{comment}
 \begin{frame}{Comparing Local vs Federated On-Device Training}
   \begin{itemize}
     \item Baseline: Each board trains independently on its own data.
@@ -378,7 +411,7 @@
   % \includegraphics[width=0.8\textwidth]{fl_vs_local_acc.pdf}
   {\small \textit{\% Placeholder for accuracy curves: local vs federated}}
 \end{frame}
-
+\end{comment}
 % ===================== Section 6: Discussion =====================
 \section{Discussion \& Future Work}
 
