@@ -6,7 +6,7 @@
 // NN parameters, set these yourself! 
 #define LEARNING_RATE 0.0015    // The learning rate used to train your network
 #define EPOCH 50         // The maximum number of epochs 
-#define DATA_TYPE_FlOAT      // The data type used: Set this to DATA_TYPE_DOUBLE for higher precision. However, it is better to keep this Float if you want to submit the result via BT
+#define DATA_TYPE_FLOAT      // The data type used: Set this to DATA_TYPE_DOUBLE for higher precision. However, it is better to keep this Float if you want to submit the result via BT
 
 extern const int first_layer_input_cnt;
 extern const int classes_cnt;

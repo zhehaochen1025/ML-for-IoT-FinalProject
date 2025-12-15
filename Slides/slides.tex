@@ -167,10 +167,10 @@
     \item Store as \texttt{.npz} for PC training and also export as \texttt{data.h} for Arduino.
   \end{itemize}
 
-  \vspace{0.5em}
-  \centering
+ % \vspace{0.5em}
+ % \centering
   % \includegraphics[width=0.8\textwidth]{split_barplot.pdf}
-  {\small \textit{\% Placeholder for class distribution / split visualization}}
+  %{\small \textit{\% Placeholder for class distribution / split visualization}}
 \end{frame}
 
 % ===================== Section 3: On-Device NN =====================
@@ -247,12 +247,11 @@
 
 \begin{frame}{From Single Board to Federated Setup}
   \begin{itemize}
-    \item We have (at least) \textbf{two} Nano 33 BLE boards:
+    \item We have  two Nano 33 BLE boards:
       \begin{itemize}
-        \item Each board has its own local dataset
-          (e.g., different users / recording sessions).
+        \item Each board has its own local dataset from different users' gesture recordings.
       \end{itemize}
-    \item Idea:
+    \item Idea: In each round
       \begin{itemize}
         \item Each board trains locally for several epochs.
         \item Boards use BLE to \textbf{exchange network weights}.

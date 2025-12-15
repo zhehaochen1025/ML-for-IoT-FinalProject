@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import torch
 import torch.nn as nn
@@ -5,23 +6,26 @@ import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 
 # ============================================
-# 1. 读取 .npz 数据
+# 1. 读取 .npz 数据（里面已经是 min-max 归一化过的特征）
 # ============================================
-npz_path = "jiuenfeng_imu_75feat_minmax_norm.npz"  # TODO: 改成你自己的 .npz 文件名
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+npz_path = os.path.join(BASE_DIR, "data", "czh_imu_75feat_minmax_norm.npz")
 data = np.load(npz_path)
 
-print("NPZ keys:", data.files)
+print("NPZ keys:", data.files)  # ['X_train','y_train','X_val','y_val','X_test','y_test','feature_min','feature_max']
 
-X_train = data["X_train"]   # shape (N_train, 75)
-y_train = data["y_train"]   # shape (N_train,)
+X_train = data["X_train"]   # 已经是用 (raw-min)/(max-min) 归一化过的
+y_train = data["y_train"]
 X_val   = data["X_val"]
 y_val   = data["y_val"]
 X_test  = data["X_test"]
 y_test  = data["y_test"]
 
-feature_min = data["feature_min"]  # shape (75,)
-feature_max = data["feature_max"]  # shape (75,)
+# 这些是基于 RAW 特征算出来的 min/max，Arduino 用；这里我们只打印看看，不再做二次归一化
+feature_min = data["feature_min"]
+feature_max = data["feature_max"]
 
+# 类型转换
 X_train = X_train.astype(np.float32)
 X_val   = X_val.astype(np.float32)
 X_test  = X_test.astype(np.float32)
@@ -34,6 +38,11 @@ print("X_train shape:", X_train.shape)
 print("X_val   shape:", X_val.shape)
 print("X_test  shape:", X_test.shape)
 
+# 简单 sanity check：现在的特征大概在 0~1 之间
+print("X_train range:", X_train.min(), "->", X_train.max())
+print("X_val   range:", X_val.min(),   "->", X_val.max())
+print("X_test  range:", X_test.min(),  "->", X_test.max())
+
 # 类别数 & 输入维度
 classes_cnt = int(len(np.unique(y_train)))
 first_layer_input_cnt = X_train.shape[1]  # 应该是 75
@@ -41,52 +50,31 @@ print("first_layer_input_cnt =", first_layer_input_cnt)
 print("classes_cnt            =", classes_cnt)
 
 # ============================================
-# 2. 与 Arduino 相同规则做 Min-Max 归一化
-#    (x - min) / (max - min)，常量特征置 0
-# ============================================
-feature_min = feature_min.astype(np.float32)
-feature_max = feature_max.astype(np.float32)
-
-eps = 1e-6
-range_vec = feature_max - feature_min
-mask_zero = np.abs(range_vec) < eps
-range_vec[mask_zero] = 1.0  # 防止除 0
-
-def normalize(X):
-    Xn = (X - feature_min) / range_vec
-    Xn[:, mask_zero] = 0.0
-    return Xn
-
-X_train_n = normalize(X_train)
-X_val_n   = normalize(X_val)
-X_test_n  = normalize(X_test)
-
-# ============================================
-# 3. 转成 PyTorch Tensor + DataLoader
+# 2. 转成 PyTorch Tensor + DataLoader（不再额外归一化）
 # ============================================
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using device:", device)
 
-X_train_t = torch.from_numpy(X_train_n)
+X_train_t = torch.from_numpy(X_train)
 y_train_t = torch.from_numpy(y_train)
 
-X_val_t   = torch.from_numpy(X_val_n)
+X_val_t   = torch.from_numpy(X_val)
 y_val_t   = torch.from_numpy(y_val)
 
-X_test_t  = torch.from_numpy(X_test_n)
+X_test_t  = torch.from_numpy(X_test)
 y_test_t  = torch.from_numpy(y_test)
 
 train_ds = TensorDataset(X_train_t, y_train_t)
 val_ds   = TensorDataset(X_val_t,   y_val_t)
 test_ds  = TensorDataset(X_test_t,  y_test_t)
 
-batch_size = 32
+batch_size = 1
 train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
 val_loader   = DataLoader(val_ds,   batch_size=batch_size, shuffle=False)
 test_loader  = DataLoader(test_ds,  batch_size=batch_size, shuffle=False)
 
 # ============================================
-# 4. 定义与 Arduino 一样结构的 MLP：75 → 64 → classes_cnt
+# 3. 定义与 Arduino 一样结构的 MLP：75 → 64 → classes_cnt
 # ============================================
 class IMUNet(nn.Module):
     def __init__(self, in_dim, hidden_dim, out_dim):
@@ -96,7 +84,6 @@ class IMUNet(nn.Module):
         self.fc2 = nn.Linear(hidden_dim, out_dim)
 
     def forward(self, x):
-        # x: (N, in_dim)
         x = self.fc1(x)
         x = self.relu(x)
         x = self.fc2(x)  # 输出 logits，CrossEntropyLoss 里自带 softmax
@@ -105,15 +92,17 @@ class IMUNet(nn.Module):
 model = IMUNet(first_layer_input_cnt, 64, classes_cnt).to(device)
 print(model)
 
-# 换成和 Arduino 接近的超参
+# ============================================
+# 4. 超参数（尽量贴近 Arduino：SGD + 小学习率）
+# ============================================
 LEARNING_RATE = 0.0015
-EPOCH = 1000
+EPOCH = 50
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE)  # 也可以换成 Adam
+optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE)
 
 # ============================================
-# 5. 训练 & 验证
+# 5. 评估函数
 # ============================================
 def eval_loader(loader):
     model.eval()
@@ -132,6 +121,9 @@ def eval_loader(loader):
             total += xb.size(0)
     return total_loss / total, total_correct / total
 
+# ============================================
+# 6. 训练循环（只用一次归一化后的特征）
+# ============================================
 for epoch in range(1, EPOCH + 1):
     model.train()
     total_train_loss = 0.0
@@ -158,12 +150,12 @@ for epoch in range(1, EPOCH + 1):
 
     val_loss, val_acc = eval_loader(val_loader)
 
-    print(f"Epoch {epoch:02d} | "
+    print(f"Epoch {epoch:03d} | "
           f"Train loss={train_loss:.4f}, acc={train_acc:.3f} | "
           f"Val loss={val_loss:.4f}, acc={val_acc:.3f}")
 
 # ============================================
-# 6. 在 test 集上评估
+# 7. 在 test 集上评估
 # ============================================
 test_loss, test_acc = eval_loader(test_loader)
 print("\nFinal Test:")
