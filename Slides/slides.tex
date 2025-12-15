@@ -25,7 +25,7 @@
 }
 
 \title{Federated On-Device Training on Arduino Nano 33 BLE}
-\author{Zhehao Chen}
+\author{Haoran Li\quad Jiuen Feng\quad Yuhe Bian\quad Zhehao Chen}
 \date{December 2025}
 
 \begin{document}
@@ -45,11 +45,10 @@
 
 \begin{frame}{Project Context}
   \begin{itemize}
-    \item Course: \textbf{Machine Learning for IoT}.
     \item Hardware: \textbf{Arduino Nano 33 BLE} + TinyML Shield.
     \item Sensors: \textbf{IMU} -- accelerometer, gyroscope, orientation.
-    \item Target task: classify IMU segments into multiple classes
-      (e.g., gestures / movements in ``Spell Game'').
+    \item Target task: classify IMU segments into multiple gestures / movements in ``Spell Game''.
+    \item Federated learning on two boards, communication through BLE
     \item Constraint: training \textbf{directly on the board}
       with very limited RAM and compute.
   \end{itemize}
@@ -69,8 +68,6 @@
         \item Each device trains a \textbf{local model} on its own data.
         \item Devices only exchange \textbf{model parameters}, not raw data.
       \end{itemize}
-    \item Question: \textbf{Can we implement a simple federated scheme
-      directly between two Nano 33 BLE boards?}
   \end{itemize}
 \end{frame}
 
@@ -78,23 +75,33 @@
 \section{Data \& Feature Extraction}
 
 \begin{frame}{Raw Data from Edge Impulse}
-  \begin{itemize}
-    \item Data collected with Edge Impulse pipeline.
-    \item Stored as \texttt{.cbor} messages:
-      \begin{itemize}
-        \item Payload includes: \texttt{interval\_ms}, \texttt{sensors}, \texttt{values}.
-        \item Each sample: around \textbf{2000 ms}, sampled at \textbf{100 Hz}.
-      \end{itemize}
-    \item Shape of \texttt{values}:
-      \[
-        (T, 9) \approx (201, 9),
-      \]
-      where 9 channels are (accel, gyro, orientation).
-  \end{itemize}
-  \vspace{0.5em}
-  \centering
-  % \includegraphics[width=0.7\textwidth]{raw_cbor_example.pdf}
-  {\small \textit{\% Placeholder for raw CBOR / time-series visualization}}
+\begin{columns}[T,onlytextwidth]
+  % ------- Left: text -------
+  \begin{column}{0.55\textwidth}
+    \begin{itemize}
+      \item Data collected with Edge Impulse pipeline.
+      \item Stored as \texttt{.cbor} messages:
+        \begin{itemize}
+          \item Payload includes: \texttt{interval\_ms}, \texttt{sensors}, \texttt{values}.
+          \item Each sample: around \textbf{2000 ms}, sampled at \textbf{100 Hz}.
+        \end{itemize}
+      \item Shape of \texttt{values}:
+        \[
+          (T, 9) \approx (201, 9),
+        \]
+        where 9 channels are (accel, gyro, orientation).
+    \end{itemize}
+  \end{column}
+
+  % ------- Right: figure -------
+  \begin{column}{0.45\textwidth}
+    \centering
+    \includegraphics[width=0.75\linewidth]{figures/raw_cbor_example.png}
+    \vspace{0.3em}
+
+    %{\scriptsize \textit{Raw time-series (one sample per class), 9 channels overlaid.}}
+  \end{column}
+\end{columns}
 \end{frame}
 
 \begin{frame}{Why Not Use Raw 201 $\times$ 9 Data on Board?}
