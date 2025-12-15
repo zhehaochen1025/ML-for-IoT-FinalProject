@@ -4,8 +4,8 @@
 #include<TinyMLShield.h>
 
 // NN parameters, set these yourself! 
-#define LEARNING_RATE 0.001    // The learning rate used to train your network
-#define EPOCH 50             // The maximum number of epochs 
+#define LEARNING_RATE 0.0015    // The learning rate used to train your network
+#define EPOCH 50         // The maximum number of epochs 
 #define DATA_TYPE_FlOAT      // The data type used: Set this to DATA_TYPE_DOUBLE for higher precision. However, it is better to keep this Float if you want to submit the result via BT
 
 extern const int first_layer_input_cnt;
@@ -16,14 +16,13 @@ extern const int classes_cnt;
 // 1. An input layer with the size of your input as defined in the variable first_layer_input_cnt in cnn_data.h 
 // 2. A hidden layer with 20 nodes
 // 3. An output layer with as many classes as you defined in the variable classes_cnt in cnn_data.h 
-static const unsigned int NN_def[] = {first_layer_input_cnt, 20, classes_cnt};
+static const unsigned int NN_def[] = {first_layer_input_cnt, 64, classes_cnt};
 
 #include "data.h"       // The data, labels and the sizes of all objects are stored here 
 #include "NN_functions.h"   // All NN functions are stored here 
 
 int iter_cnt = 0;           // This keeps track of the number of epochs you've trained on the Arduino
 #define DEBUG 0             // This prints the weights of your network in case you want to do debugging (set to 1 if you want to see that)
-
 
 // This function contains your training loop 
 void do_training() {
@@ -62,7 +61,7 @@ void setup() {
   srand(0); 
   
   Serial.begin(9600); 
-  //delay(5000);
+  delay(5000);
   while (!Serial); 
 
   // Initialize the TinyML Shield 
@@ -89,13 +88,13 @@ void loop() {
   // put your main code here, to run repeatedly:
 
   // see if the button is pressed and turn off or on recording accordingly
-  //bool clicked = readShieldButton();
-  
-  //if (clicked){
+  bool clicked = readShieldButton();
+  // Serial.println("Please Click the Button");
+  if (iter_cnt < EPOCH){
     
-    //Serial.println("yes, we clicked the button");
+    // Serial.println("yes, we clicked the button");
     do_training(); // Local training 
     
-  //}
+  }
 
 }

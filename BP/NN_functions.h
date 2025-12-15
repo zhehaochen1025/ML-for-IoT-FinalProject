@@ -42,6 +42,25 @@ DATA_TYPE y[OUT_VEC_SIZE];        // output after forward propagation
 // creating array index to randomnize order of training data
 int indxArray[train_data_cnt];
 
+// 引用 data.h 中的常量数组 (注意: 它们现在是 const float)
+extern const float feature_min[];
+extern const float feature_max[];
+
+// --- [修改 2] 新增归一化函数 ---
+void normalizeInputBuffer() {
+  for (int j = 0; j < IN_VEC_SIZE; j++) {
+    float range = feature_max[j] - feature_min[j];
+    
+    // 防止除以0 (如果某特征是常量)
+    if (abs(range) < 1e-6) { 
+       input[j] = 0.0; 
+    } else {
+       // 公式：(当前值 - 最小值) / (最大值 - 最小值)
+       input[j] = (input[j] - feature_min[j]) / range;
+    }
+  }
+}
+
 // Convention: Refer to 
 typedef struct neuron_t {
 	int numInput;
@@ -106,7 +125,7 @@ neuron createNeuron(int numInput) {
 	// initializing values of W to rand and dW to 0
 	//int Sum = 0;
 	for (int i = 0; i < numInput; i++) {
-		N1.W[i] = fRAND;
+		N1.W[i] = fRAND / sqrt((float)numInput);
 		N1.dW[i] = 0.0;
 	}
 	N1.dA = 0.0;
@@ -165,7 +184,8 @@ DATA_TYPE dLossCalc( unsigned int layerIndx, unsigned int nodeIndx) {
 	return Sum;
 }
 
-void forwardProp() {
+void forwardProp()
+{
 	
 	DATA_TYPE Fsum = 0;
 	int maxIndx = 0;
@@ -248,7 +268,7 @@ void generateTrainVectors(int indx) {
 	for (unsigned int j = 0; j < IN_VEC_SIZE; j++) {
 		input[j] = train_data[ indxArray[indx] ][j];
 	}
-
+	normalizeInputBuffer();
 }
 
 void shuffleIndx()
@@ -272,75 +292,59 @@ int calcTotalWeightsBias()
 	return Count;
 }
 
-void printAccuracy()
-{
-  // checking accuracy if training data
+// --- [修改 5] 在计算准确率时也要归一化 ---
+void printAccuracy() {
   int correctCount = 0;
 
+  // 1. 训练集
   for (unsigned int i = 0; i < numTrainData; i++) {
     int maxIndx = 0;
     for (unsigned int j = 0; j < IN_VEC_SIZE; j++) {
       input[j] = train_data[i][j];
     }
-
+    normalizeInputBuffer(); // <--- 加入这行
     forwardProp();
     for (unsigned int j = 1; j < OUT_VEC_SIZE; j++) {
-      if (y[maxIndx] < y[j]) {
-        maxIndx = j;
-      }
+      if (y[maxIndx] < y[j]) maxIndx = j;
     }
-    if (maxIndx == train_labels[i]) {
-      correctCount += 1;
-    }
+    if (maxIndx == train_labels[i]) correctCount += 1;
   }
-
-  float Accuracy = correctCount * 1.0 / numTrainData;
   Serial.print("Training Accuracy: ");
-  Serial.println(Accuracy);
+  Serial.println(correctCount * 1.0 / numTrainData);
 
+  // 2. 验证集
   correctCount = 0;
   for (unsigned int i = 0; i < numValData; i++) {
     int maxIndx = 0;
     for (unsigned int j = 0; j < IN_VEC_SIZE; j++) {
       input[j] = validation_data[i][j];
     }
-
+    normalizeInputBuffer(); // <--- 加入这行
     forwardProp();
     for (unsigned int j = 1; j < OUT_VEC_SIZE; j++) {
-      if (y[maxIndx] < y[j]) {
-        maxIndx = j;
-      }
+      if (y[maxIndx] < y[j]) maxIndx = j;
     }
-    if (maxIndx == validation_labels[i]) {
-      correctCount += 1;
-    }
+    if (maxIndx == validation_labels[i]) correctCount += 1;
   }
-
-  Accuracy = correctCount * 1.0 / numValData;
   Serial.print("Validation Accuracy: ");
-  Serial.println(Accuracy);
+  Serial.println(correctCount * 1.0 / numValData);
 
+  // 3. 测试集
   correctCount = 0;
   for (unsigned int i = 0; i < numTestData; i++) {
     int maxIndx = 0;
     for (unsigned int j = 0; j < IN_VEC_SIZE; j++) {
       input[j] = test_data[i][j];
     }
-
+    normalizeInputBuffer(); // <--- 加入这行
     forwardProp();
     for (unsigned int j = 1; j < OUT_VEC_SIZE; j++) {
-      if (y[maxIndx] < y[j]) {
-        maxIndx = j;
-      }
+      if (y[maxIndx] < y[j]) maxIndx = j;
     }
-    if (maxIndx == test_labels[i]) {
-      correctCount += 1;
-    }
+    if (maxIndx == test_labels[i]) correctCount += 1;
   }
-
-  Accuracy = correctCount * 1.0 / numTestData;
   Serial.print("Test Accuracy: ");
-  Serial.println(Accuracy);
+  Serial.println(correctCount * 1.0 / numTestData);
 }
 
 
