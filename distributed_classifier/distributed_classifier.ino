@@ -27,10 +27,50 @@
 const int first_layer_input_cnt = 75;  // 输入特征维度
 const int classes_cnt = 4;              // 类别数量
 
-// 网络结构（需要与训练时一致）
-static const unsigned int NN_def[] = {first_layer_input_cnt, 64, classes_cnt};
+// 为了兼容 NN_functions.h，定义这些常量（推理时不会被使用）
+// 使用小的非零值以避免数组声明问题
+const int train_data_cnt = 1;
+const int validation_data_cnt = 1;
+const int test_data_cnt = 1;
+
+// 为了兼容 NN_functions.h，定义这些空数组（推理时不会被使用）
+// 这些变量仅在训练相关的函数中使用，推理代码不会调用这些函数
+static const float train_data[1][75] = {{0}};
+static const int train_labels[1] = {0};
+static const float validation_data[1][75] = {{0}};
+static const int validation_labels[1] = {0};
+static const float test_data[1][75] = {{0}};
+static const int test_labels[1] = {0};
+
+// 网络结构（需要与训练时一致，必须与训练代码中的 NN_def 一致）
+static const int NN_def[] = {first_layer_input_cnt, 32, classes_cnt};
 #include "NN_functions.h"   // 神经网络函数
-#include "inference.h"      // 训练好的权重数组 
+#include "inference.h"      // 训练好的权重数组
+
+// 推理函数：获取所有类别的概率
+// 参数: input_data - 输入特征向量
+//       probabilities - 输出概率数组（必须至少有 classes_cnt 个元素）
+// 返回: 预测类别的索引
+int inferenceWithProbabilities(const DATA_TYPE* input_data, DATA_TYPE* probabilities) {
+  // 1. 将输入数据复制到 input 数组
+  for (int i = 0; i < IN_VEC_SIZE; i++) {
+    input[i] = input_data[i];
+  }
+  
+  // 2. 执行前向传播（forwardProp 会自动进行 softmax 归一化）
+  forwardProp();
+  
+  // 3. 复制概率到输出数组
+  int maxIndx = 0;
+  for (int j = 0; j < OUT_VEC_SIZE; j++) {
+    probabilities[j] = y[j];
+    if (j > 0 && y[maxIndx] < y[j]) {
+      maxIndx = j;
+    }
+  }
+  
+  return maxIndx;
+} 
 // ========== IMU 参数 ==========
 // 训练配置：2秒窗口
 // 如果训练时使用100Hz采样率：2秒 × 100Hz = 200个样本
@@ -333,12 +373,9 @@ if (currentTime - lastSampleTime >= sampleIntervalMs) {
     float features[75];
     extractFeatures(features);
     
-    // 2. 执行推理（超简单！只需一行）
-    int predicted_class = inference(features);
-    
-    // 3. 获取概率（可选）
+    // 2. 执行推理并获取所有类别的概率
     float probabilities[classes_cnt];
-    inferenceWithProbabilities(features, probabilities);
+    int predicted_class = inferenceWithProbabilities(features, probabilities);
     
     // 4. 输出结果
     Serial.println("--- 推理结果 ---");

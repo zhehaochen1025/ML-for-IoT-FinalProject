@@ -14,7 +14,7 @@ extern const int first_layer_input_cnt;
 extern const int classes_cnt;
 
 /* ------- CONFIG ------- */
-#define DEVICE_TYPE WORKER // Which device is being exported: LEADER or WORKER?
+#define DEVICE_TYPE LEADER // Which device is being exported: LEADER or WORKER?
 #define DEBUG 0
 
 /*
@@ -59,7 +59,7 @@ extern const int classes_cnt;
 
 // DO NOT TOUCH THE FIRST AND LAST ENTRIES OF BELOW ARRAY, YOU CAN MODIFY ANY OF OTHER ENTRIES
 // like increase the number of layers, change the nodes per layer
-static const int NN_def[] = {first_layer_input_cnt, 64, classes_cnt};
+static const int NN_def[] = {first_layer_input_cnt, 32, classes_cnt};
 
 // this is to set the precision for weight/bias in NN
 #define DATA_TYPE_FLOAT  // Valid values:  DATA_TYPE_DOUBLE , DATA_TYPE_FLOAT
