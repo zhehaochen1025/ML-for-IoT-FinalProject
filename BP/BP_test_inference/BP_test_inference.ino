@@ -19,27 +19,19 @@
  #include<TinyMLShield.h>
  
  // NN parameters（需要与训练时一致）
- #define LEARNING_RATE 0.0015
+ #define LEARNING_RATE 0.002
  #define EPOCH 50
  #define DATA_TYPE_FlOAT
  
- extern const int first_layer_input_cnt;
- extern const int classes_cnt;
  
  // 网络结构（需要与训练时一致）
  static const unsigned int NN_def[] = {first_layer_input_cnt, 64, classes_cnt};
  
- #include "data.h"       // 包含测试数据和标签
+ #include "data.h"       // 包含测试数据和标签（需要 test_data, test_labels, test_data_cnt）
  #include "NN_functions.h"   // 神经网络函数
- 
+ #include "inference.h"      // 训练好的权重数组 
  // ========== 将训练后保存的权重数组粘贴到这里 ==========
  // 从 BP.ino 训练完成后的串口输出中复制权重数组
- const float trained_weights[] = {
-   // 在这里粘贴从串口复制的权重数据
-   // 例如：0.123456f, -0.789012f, ...
-   // 注意：如果权重数组为空，请先运行 BP.ino 训练模型并保存权重
- };
- 
  // 类别名称映射
  const char* class_names[] = {
    "circle",  // 0

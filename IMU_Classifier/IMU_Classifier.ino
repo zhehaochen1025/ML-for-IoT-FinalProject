@@ -23,13 +23,12 @@
 #define EPOCH 50
 #define DATA_TYPE_FLOAT
 
-extern const int first_layer_input_cnt;
-extern const int classes_cnt;
+// 网络参数（推理时只需要这两个常量，不需要整个 data.h）
+const int first_layer_input_cnt = 75;  // 输入特征维度
+const int classes_cnt = 4;              // 类别数量
 
 // 网络结构（需要与训练时一致）
 static const unsigned int NN_def[] = {first_layer_input_cnt, 64, classes_cnt};
-
-#include "data.h"           // 包含归一化参数
 #include "NN_functions.h"   // 神经网络函数
 #include "inference.h"      // 训练好的权重数组 
 // ========== IMU 参数 ==========
@@ -40,12 +39,12 @@ static const unsigned int NN_def[] = {first_layer_input_cnt, 64, classes_cnt};
 
 // 根据你的训练配置选择：
 // 选项1：如果训练时是100Hz，2秒窗口 = 200个样本
-const int numSamples = 200;
-const int targetSampleRate = 100;  // 目标采样率（Hz）
+// const int numSamples = 200;
+// const int targetSampleRate = 100;  // 目标采样率（Hz）
 
 // 选项2：如果训练时是119Hz，2秒窗口 = 238个样本（推荐，因为Arduino默认119Hz）
-// const int numSamples = 238;
-// const int targetSampleRate = 119;
+const int numSamples = 238;
+const int targetSampleRate = 119;
 
 // 选项3：如果训练时实际用的是119个样本（约1秒窗口）
 // const int numSamples = 119;
@@ -57,7 +56,7 @@ int samplesRead = numSamples;
 
 // ========== 数据缓冲区 ==========
 // 存储IMU原始数据：numSamples个样本 × 6个值（ax, ay, az, gx, gy, gz）
-float imu_buffer[200][6];  // 根据numSamples调整大小（最大238）
+float imu_buffer[238][9];  // 根据numSamples调整大小（最大238）
 
 // ========== 类别名称 ==========
 const char* GESTURES[] = {
@@ -77,33 +76,22 @@ void extractFeatures(float features[75]) {
   // 使用全局的numSamples，确保与训练时一致
   int num_samples = numSamples;
   
-  // 临时数组：将6维IMU数据扩展为9维（添加角度数据）
-  // 训练数据包含：ax, ay, az, gx, gy, gz, roll, pitch, yaw (9维)
-  // 当前只有：ax, ay, az, gx, gy, gz (6维)，需要计算角度
-  // 注意：数组大小需要根据numSamples调整
+  // 临时数组：直接使用9维IMU数据
+  // 训练数据包含：ax, ay, az, gx, gy, gz, magX, magY, magZ (9维)
+  // CBOR原始数据就是这9维，不需要转换！
   static float data_9d[238][9];  // 最大238，根据实际numSamples使用
+  
   for (int i = 0; i < num_samples; i++) {
-    // 复制加速度和陀螺仪数据
+    // 直接复制所有9维数据
     data_9d[i][0] = imu_buffer[i][0]; // ax
     data_9d[i][1] = imu_buffer[i][1]; // ay
     data_9d[i][2] = imu_buffer[i][2]; // az
     data_9d[i][3] = imu_buffer[i][3]; // gx
     data_9d[i][4] = imu_buffer[i][4]; // gy
     data_9d[i][5] = imu_buffer[i][5]; // gz
-    
-    // 计算角度（roll, pitch, yaw）
-    // 注意：这些角度计算方式需要与训练数据采集时一致
-    // 如果训练数据使用了不同的角度计算方法，需要相应调整
-    // roll = atan2(ay, az) * 180/PI
-    // pitch = atan2(-ax, sqrt(ay*ay + az*az)) * 180/PI  
-    // yaw = 0 (无法从加速度计单独计算，如果训练数据有yaw，需要从陀螺仪积分)
-    float roll = atan2(data_9d[i][1], data_9d[i][2]) * 180.0 / PI;
-    float pitch = atan2(-data_9d[i][0], sqrt(data_9d[i][1]*data_9d[i][1] + data_9d[i][2]*data_9d[i][2])) * 180.0 / PI;
-    float yaw = 0.0;  // 如果训练数据包含yaw，需要从陀螺仪积分计算
-    
-    data_9d[i][6] = roll;
-    data_9d[i][7] = pitch;
-    data_9d[i][8] = yaw;
+    data_9d[i][6] = imu_buffer[i][6]; // mx
+    data_9d[i][7] = imu_buffer[i][7]; // my
+    data_9d[i][8] = imu_buffer[i][8]; // mz
   }
   
   int feat_idx = 0;
@@ -185,7 +173,7 @@ void extractFeatures(float features[75]) {
   }
   features[feat_idx++] = gyro_mag_sum / num_samples;
   
-  // orientation magnitude: sqrt((roll^2 + pitch^2 + yaw^2)) 的均值
+  // magnetometer magnitude: sqrt((magX^2 + magY^2 + magZ^2)) 的均值
   float ori_mag_sum = 0.0;
   for (int i = 0; i < num_samples; i++) {
     float mag = sqrt(data_9d[i][6]*data_9d[i][6] + 
@@ -284,7 +272,7 @@ void setup() {
 }
 
 void loop() {
-  float aX, aY, aZ, gX, gY, gZ;
+  float aX, aY, aZ, gX, gY, gZ, mX, mY, mZ;
   
   // ========== 等待按钮按下 ==========
   while (samplesRead == numSamples) {
@@ -309,23 +297,34 @@ void loop() {
     unsigned long currentTime = millis();
     
     // 检查是否到了采样时间
-    if (currentTime - lastSampleTime >= sampleIntervalMs) {
-      if (IMU.accelerationAvailable() && IMU.gyroscopeAvailable()) {
-        IMU.readAcceleration(aX, aY, aZ);
-        IMU.readGyroscope(gX, gY, gZ);
-        
-        // 存储到缓冲区
-        imu_buffer[samplesRead][0] = aX;
-        imu_buffer[samplesRead][1] = aY;
-        imu_buffer[samplesRead][2] = aZ;
-        imu_buffer[samplesRead][3] = gX;
-        imu_buffer[samplesRead][4] = gY;
-        imu_buffer[samplesRead][5] = gZ;
-        
-        lastSampleTime = currentTime;
-        samplesRead++;
-      }
+    static float lastMX = 0, lastMY = 0, lastMZ = 0;
+
+if (currentTime - lastSampleTime >= sampleIntervalMs) {
+
+  // accel + gyro 是主频
+  if (IMU.accelerationAvailable() && IMU.gyroscopeAvailable()) {
+    IMU.readAcceleration(aX, aY, aZ);
+    IMU.readGyroscope(gX, gY, gZ);
+
+    // mag 有就更新，没有就用上次的
+    if (IMU.magneticFieldAvailable()) {
+      IMU.readMagneticField(lastMX, lastMY, lastMZ);
     }
+
+    imu_buffer[samplesRead][0] = aX;
+    imu_buffer[samplesRead][1] = aY;
+    imu_buffer[samplesRead][2] = aZ;
+    imu_buffer[samplesRead][3] = gX;
+    imu_buffer[samplesRead][4] = gY;
+    imu_buffer[samplesRead][5] = gZ;
+    imu_buffer[samplesRead][6] = lastMX;
+    imu_buffer[samplesRead][7] = lastMY;
+    imu_buffer[samplesRead][8] = lastMZ;
+
+    lastSampleTime += sampleIntervalMs; // 比 lastSampleTime=currentTime 更稳
+    samplesRead++;
+  }
+}
   }
   
   // ========== 采集完成后进行推理 ==========

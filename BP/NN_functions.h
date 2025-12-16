@@ -42,24 +42,7 @@ DATA_TYPE y[OUT_VEC_SIZE];        // output after forward propagation
 // creating array index to randomnize order of training data
 int indxArray[train_data_cnt];
 
-// 引用 data.h 中的常量数组 (注意: 它们现在是 const float)
-extern const float feature_min[];
-extern const float feature_max[];
-
-// --- [修改 2] 新增归一化函数 ---
-void normalizeInputBuffer() {
-  for (int j = 0; j < IN_VEC_SIZE; j++) {
-    float range = feature_max[j] - feature_min[j];
-    
-    // 防止除以0 (如果某特征是常量)
-    if (abs(range) < 1e-6) { 
-       input[j] = 0.0; 
-    } else {
-       // 公式：(当前值 - 最小值) / (最大值 - 最小值)
-       input[j] = (input[j] - feature_min[j]) / range;
-    }
-  }
-}
+// 归一化已移除 - 输入数据应该是已经归一化的
 
 // Convention: Refer to 
 typedef struct neuron_t {
@@ -268,7 +251,6 @@ void generateTrainVectors(int indx) {
 	for (unsigned int j = 0; j < IN_VEC_SIZE; j++) {
 		input[j] = train_data[ indxArray[indx] ][j];
 	}
-	normalizeInputBuffer();
 }
 
 void shuffleIndx()
@@ -302,7 +284,6 @@ void printAccuracy() {
     for (unsigned int j = 0; j < IN_VEC_SIZE; j++) {
       input[j] = train_data[i][j];
     }
-    normalizeInputBuffer(); // <--- 加入这行
     forwardProp();
     for (unsigned int j = 1; j < OUT_VEC_SIZE; j++) {
       if (y[maxIndx] < y[j]) maxIndx = j;
@@ -319,7 +300,6 @@ void printAccuracy() {
     for (unsigned int j = 0; j < IN_VEC_SIZE; j++) {
       input[j] = validation_data[i][j];
     }
-    normalizeInputBuffer(); // <--- 加入这行
     forwardProp();
     for (unsigned int j = 1; j < OUT_VEC_SIZE; j++) {
       if (y[maxIndx] < y[j]) maxIndx = j;
@@ -336,7 +316,6 @@ void printAccuracy() {
     for (unsigned int j = 0; j < IN_VEC_SIZE; j++) {
       input[j] = test_data[i][j];
     }
-    normalizeInputBuffer(); // <--- 加入这行
     forwardProp();
     for (unsigned int j = 1; j < OUT_VEC_SIZE; j++) {
       if (y[maxIndx] < y[j]) maxIndx = j;
@@ -486,10 +465,7 @@ int inference(const float* input_data) {
     input[j] = input_data[j];
   }
   
-  // 2. 归一化输入
-  normalizeInputBuffer();
-  
-  // 3. 前向传播
+  // 2. 前向传播（输入数据应该是已经归一化的）
   forwardProp();
   
   // 4. 找到最大概率的类别
