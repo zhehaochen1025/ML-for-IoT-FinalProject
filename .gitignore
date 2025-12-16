@@ -53,7 +53,7 @@ CMakeCache.txt
 # 数据 / 模型（可按需调整）
 ########################
 # 大型原始数据（如果你要一起开发，可以只放小样本）
-data/raw/
+data/imu_raw/
 data/interim/
 data/tmp/
 datasets/
@@ -86,7 +86,6 @@ saved_models/
 Thumbs.db
 
 
-
 ########################
 # LaTeX
 ########################
@@ -110,3 +109,4 @@ Thumbs.db
 *.nav
 *.snm
 *.xdv
+*.dvi
