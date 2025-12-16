@@ -22,6 +22,17 @@
 #define OUT_VEC_SIZE classes_cnt
 
 // size of different vectors
+// 如果未定义训练数据相关的常量，则设为0（推理模式）
+#ifndef test_data_cnt
+#define test_data_cnt 0
+#endif
+#ifndef validation_data_cnt
+#define validation_data_cnt 0
+#endif
+#ifndef train_data_cnt
+#define train_data_cnt 0
+#endif
+
 size_t numTestData = test_data_cnt;
 size_t numValData = validation_data_cnt;
 size_t numTrainData = train_data_cnt;
@@ -40,7 +51,10 @@ DATA_TYPE y[OUT_VEC_SIZE];        // output after forward propagation
 
 
 // creating array index to randomnize order of training data
+// 只在训练模式下定义（当 train_data_cnt > 0 时）
+#if train_data_cnt > 0
 int indxArray[train_data_cnt];
+#endif
 
 // 归一化已移除 - 输入数据应该是已经归一化的
 
@@ -140,9 +154,12 @@ void createNetwork() {
 	}
 
 	// creating indx array for shuffle function to be used later
+	// 只在训练模式下初始化（当 train_data_cnt > 0 时）
+#if train_data_cnt > 0
 	for (unsigned int i = 0; i <  numTrainData; i ++ ) {
 		indxArray[i] = i;
 	}
+#endif
 
 }
 
@@ -240,6 +257,8 @@ void backwardProp() {
 
 
 // function to set the input and output vectors for training or inference
+// 只在训练模式下可用（需要 train_data 和 train_labels）
+#if train_data_cnt > 0
 void generateTrainVectors(int indx) {
 
 	// Train Data
@@ -252,7 +271,10 @@ void generateTrainVectors(int indx) {
 		input[j] = train_data[ indxArray[indx] ][j];
 	}
 }
+#endif
 
+// 只在训练模式下可用
+#if train_data_cnt > 0
 void shuffleIndx()
 {
   for (unsigned int i = 0; i < train_data_cnt - 1; i++)
@@ -263,6 +285,7 @@ void shuffleIndx()
     indxArray[i] = t;
   }
 }
+#endif
 
 int calcTotalWeightsBias()
 {
@@ -275,6 +298,8 @@ int calcTotalWeightsBias()
 }
 
 // --- [修改 5] 在计算准确率时也要归一化 ---
+// 只在训练模式下可用（需要训练数据）
+#if train_data_cnt > 0
 void printAccuracy() {
   int correctCount = 0;
 
@@ -325,6 +350,7 @@ void printAccuracy() {
   Serial.print("Test Accuracy: ");
   Serial.println(correctCount * 1.0 / numTestData);
 }
+#endif
 
 
 #define PACK 0
