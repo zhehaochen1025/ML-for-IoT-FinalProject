@@ -18,7 +18,7 @@ extern const int classes_cnt;
 // 3. An output layer with as many classes as you defined in the variable classes_cnt in cnn_data.h 
 static const unsigned int NN_def[] = {first_layer_input_cnt, 64, classes_cnt};
 
-#include "data_byh.h"       // The data, labels and the sizes of all objects are stored here 
+#include "data_fje.h"       // The data, labels and the sizes of all objects are stored here 
 #include "NN_functions.h"   // All NN functions are stored here 
 
 int iter_cnt = 0;           // This keeps track of the number of epochs you've trained on the Arduino

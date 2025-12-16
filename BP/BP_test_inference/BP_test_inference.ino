@@ -26,10 +26,10 @@
  
 // 网络结构（需要与训练时一致）
 
- #include "data.h"       // 包含测试数据和标签（需要 test_data, test_labels, test_data_cnt）
+ #include "data_byh.h"       // 包含测试数据和标签（需要 test_data, test_labels, test_data_cnt）
  static const unsigned int NN_def[] = {first_layer_input_cnt, 64, classes_cnt};
  #include "NN_functions.h"   // 神经网络函数
- #include "inference_byh.h"      // 训练好的权重数组 
+ #include "inference_fje.h"      // 训练好的权重数组 
 
  
  // ========== 将训练后保存的权重数组粘贴到这里 ==========

@@ -54,12 +54,13 @@ extern const int classes_cnt;
 #define BLE_NBR_WEIGHTS 12
 
 // NN parameters
-#define LEARNING_RATE 0.005
+#define LEARNING_RATE 0.001
 #define EPOCH 50 
 
 // DO NOT TOUCH THE FIRST AND LAST ENTRIES OF BELOW ARRAY, YOU CAN MODIFY ANY OF OTHER ENTRIES
 // like increase the number of layers, change the nodes per layer
-static const int NN_def[] = {first_layer_input_cnt, 20, classes_cnt};
+// 注意：移除 static 关键字，以便 NN_functions.h 可以访问 NN_def
+const int NN_def[] = {first_layer_input_cnt,64, classes_cnt};
 
 // this is to set the precision for weight/bias in NN
 #define DATA_TYPE_FLOAT  // Valid values:  DATA_TYPE_DOUBLE , DATA_TYPE_FLOAT
@@ -68,7 +69,7 @@ static const int NN_def[] = {first_layer_input_cnt, 20, classes_cnt};
 
 // Training and Validation data
 #if DEVICE_TYPE == LEADER
-#include "data_czh.h"  
+#include "data_byh.h"  
 #elif DEVICE_TYPE == WORKER
 #include "data_fje.h"
 #endif
@@ -86,6 +87,11 @@ static const int NN_def[] = {first_layer_input_cnt, 20, classes_cnt};
 void destroy() {
   Serial.println("Finished training, shutting down.");
   printAccuracy();
+  
+  // 输出训练好的模型参数
+  Serial.println("\n========== 训练完成，输出模型参数 ==========");
+  saveModel(iter_cnt);
+  
 #if ENABLE_BLE
   BLE.stopAdvertise();
   BLE.disconnect();
