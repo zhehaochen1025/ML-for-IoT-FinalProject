@@ -61,7 +61,7 @@ def parse_results(input_data):
     return true_labels, pred_labels
 
 
-def plot_confusion_matrix(y_true, y_pred, class_names, save_path='confusion_matrix.png'):
+def plot_confusion_matrix(y_true, y_pred, class_names, save_path='confusion_matrix_mbyh_dbyh.png'):
     """
     绘制混淆矩阵
     
@@ -87,9 +87,9 @@ def plot_confusion_matrix(y_true, y_pred, class_names, save_path='confusion_matr
            yticks=np.arange(cm.shape[0]),
            xticklabels=class_names,
            yticklabels=class_names,
-           title=f'混淆矩阵 (准确率: {accuracy:.2%})',
-           ylabel='真实标签',
-           xlabel='预测标签')
+           title=f'Confusion Matrix (Accuracy: {accuracy:.2%})',
+           ylabel='Truth',
+           xlabel='Prediction(model_byh + data_byh)')
     
     # 添加数值标注
     thresh = cm.max() / 2.
@@ -170,7 +170,7 @@ def main():
     cm = confusion_matrix(true_labels, pred_labels, labels=range(num_classes))
     
     # 打印表头
-    header = "真实\\预测" + "".join([f"{name:>10}" for name in class_names])
+    header = "Truth\\Prediction" + "".join([f"{name:>10}" for name in class_names])
     print(header)
     print("-"*len(header))
     
