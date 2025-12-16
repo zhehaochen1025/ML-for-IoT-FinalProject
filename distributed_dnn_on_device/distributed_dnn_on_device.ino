@@ -59,8 +59,7 @@ extern const int classes_cnt;
 
 // DO NOT TOUCH THE FIRST AND LAST ENTRIES OF BELOW ARRAY, YOU CAN MODIFY ANY OF OTHER ENTRIES
 // like increase the number of layers, change the nodes per layer
-// 注意：移除 static 关键字，以便 NN_functions.h 可以访问 NN_def
-const int NN_def[] = {first_layer_input_cnt,64, classes_cnt};
+static const int NN_def[] = {first_layer_input_cnt, 64, classes_cnt};
 
 // this is to set the precision for weight/bias in NN
 #define DATA_TYPE_FLOAT  // Valid values:  DATA_TYPE_DOUBLE , DATA_TYPE_FLOAT
@@ -68,11 +67,12 @@ const int NN_def[] = {first_layer_input_cnt,64, classes_cnt};
 /* ------- END CONFIG ------- */
 
 // Training and Validation data
-#if DEVICE_TYPE == LEADER
-#include "data_byh.h"  
-#elif DEVICE_TYPE == WORKER
-#include "data_fje.h"
+#if USE_BIASED_DATASETS && DEVICE_TYPE == LEADER
+#include "data_fje.h"  
+#elif USE_BIASED_DATASETS && DEVICE_TYPE == WORKER
+#include "data_byh.h"
 #endif
+    
 #include "NN_functions.h" // Neural Network specific functions and definitions
 
 #if DEVICE_TYPE == LEADER
@@ -88,7 +88,7 @@ void destroy() {
   Serial.println("Finished training, shutting down.");
   printAccuracy();
   
-  // 输出训练好的模型参数
+  // 保存训练好的模型参数
   Serial.println("\n========== 训练完成，输出模型参数 ==========");
   saveModel(iter_cnt);
   
