@@ -14,7 +14,7 @@ extern const int first_layer_input_cnt;
 extern const int classes_cnt;
 
 /* ------- CONFIG ------- */
-#define DEVICE_TYPE LEADER // Which device is being exported: LEADER or WORKER?
+#define DEVICE_TYPE WORKER // Which device is being exported: LEADER or WORKER?
 #define DEBUG 0
 
 /*
