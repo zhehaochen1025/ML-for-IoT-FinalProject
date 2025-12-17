@@ -323,7 +323,7 @@
       \end{itemize}
   \end{itemize}
 \end{frame}
-
+\end{comment}
 
 
 \begin{frame}{On-Device Training Curves}
@@ -331,13 +331,13 @@
 \begin{columns}[T,onlytextwidth]
   \begin{column}{0.33\textwidth}
     \centering
-    \includegraphics[width=\linewidth]{figures/curve_local_A.png}
-    {\scriptsize Local on Board A}
+    \includegraphics[width=\linewidth]{../BP/BP_test_inference/output/acc_plot_byh.png}
+    {\scriptsize Local Train with data_byh}
   \end{column}
   \begin{column}{0.33\textwidth}
     \centering
-    \includegraphics[width=\linewidth]{figures/curve_local_B.png}
-    {\scriptsize Local on Board B}
+    \includegraphics[width=\linewidth]{../BP/BP_test_inference/output/acc_plot_fje.png}
+    {\scriptsize Local Train with data_fje}
   \end{column}
   \begin{column}{0.33\textwidth}
     \centering
@@ -353,26 +353,27 @@
   \item Federated training improves \textbf{cross-user generalization} without sharing raw IMU data.
 \end{itemize}
 \end{frame}
-\end{comment}
 
 
-\begin{frame}{Confusion Matrices: Local Training on Board A}
+
+
+\begin{frame}{Confusion Matrices: Local Training one Board }
 \centering
 \begin{columns}[T,onlytextwidth]
   \begin{column}{0.33\textwidth}
     \centering
-    \includegraphics[width=\linewidth]{figures/cm_Atrain_testA.png}
-    {\scriptsize Train A \(\rightarrow\) Test A}
+    \includegraphics[width=\linewidth]{../BP/BP_test_inference/output/confusion_matrix_mbyh_dbyh.png}
+    {\scriptsize Train byh \(\rightarrow\) Test byh,acc = 82.50\%}
   \end{column}
   \begin{column}{0.33\textwidth}
     \centering
-    \includegraphics[width=\linewidth]{figures/cm_Atrain_testB.png}
-    {\scriptsize Train A \(\rightarrow\) Test B}
+    \includegraphics[width=\linewidth]{../BP/BP_test_inference/output/confusion_matrix_mbyh_dczh.png}
+    {\scriptsize Train byh \(\rightarrow\) Test czh, acc = 58.67\%}
   \end{column}
   \begin{column}{0.33\textwidth}
     \centering
-    \includegraphics[width=\linewidth]{figures/cm_Atrain_testC.png}
-    {\scriptsize Train A \(\rightarrow\) Test C}
+    \includegraphics[width=\linewidth]{../BP/BP_test_inference/output/confusion_matrix_mbyh_dfje.png}
+    {\scriptsize Train byh \(\rightarrow\) Test fje, acc =52.83\%}
   \end{column}
 \end{columns}
 
@@ -384,6 +385,37 @@
 \end{itemize}
 \end{frame}
 
+\begin{frame}{Confusion Matrices: Federated Training (fje+byh, FedAvg)}
+\centering
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.33\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{../distributed_dnn_on_device/distributed_test/output/confusion_matrix_databyh.png}
+    {\scriptsize FedAvg \(\rightarrow\) Test byh}
+  \end{column}
+
+  \begin{column}{0.33\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{../distributed_dnn_on_device/distributed_test/output/confusion_matrix_datafje.png}
+    {\scriptsize FedAvg \(\rightarrow\) Test fje}
+  \end{column}
+
+  
+  \end{column}
+  
+  \begin{column}{0.33\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{../distributed_dnn_on_device/distributed_test/output/confusion_matrix_dataczh.png}
+    {\scriptsize FedAvg \(\rightarrow\) Test czh}
+\end{columns}
+
+\vspace{0.3em}
+\scriptsize
+\begin{itemize}
+  \item Federated model reduces cross-user confusion compared to local models.
+  \item Gains come with communication cost (BLE weight exchange each round).
+\end{itemize}
+\end{frame}
 
 
 % ===================== Section 5: PC Experiments =====================
@@ -408,6 +440,8 @@
 
   \end{itemize}
 \end{frame}
+
+
 \begin{frame}
 
   \centering

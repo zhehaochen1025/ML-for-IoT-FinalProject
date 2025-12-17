@@ -35,7 +35,7 @@ import os
 # 获取当前脚本所在的绝对路径
 script_dir = os.path.dirname(os.path.abspath(__file__))
 # 拼接成文件的完整路径
-file_path = os.path.join(script_dir, 'log_fje.txt')
+file_path = os.path.join(script_dir, 'log_byh.txt')
 
 # 使用完整路径打开文件
 with open(file_path, 'r', encoding='utf-8') as f:
@@ -44,6 +44,7 @@ with open(file_path, 'r', encoding='utf-8') as f:
 def parse_and_plot(text):
     # 使用正则表达式提取数值
     # 提取 Epoch
+    save_path = 'BP/BP_test_inference/output/acc_plot_byh.png'
     epochs = [int(x) for x in re.findall(r"Epoch count \(training count\): (\d+)", text)]
     
     # 提取各项 Accuracy
@@ -77,6 +78,7 @@ def parse_and_plot(text):
     
     # 自动调整布局并显示
     plt.tight_layout()
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.show()
 
 if __name__ == "__main__":

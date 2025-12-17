@@ -99,10 +99,8 @@ def plot_confusion_matrix(y_true, y_pred, class_names, save_path='confusion_matr
                    ha="center", va="center",
                    color="white" if cm[i, j] > thresh else "black")
     
-    # 调整布局
     plt.tight_layout()
     
-    # 保存图片
     plt.savefig(save_path, dpi=300, bbox_inches='tight')
     print(f"\n混淆矩阵已保存到: {save_path}")
     

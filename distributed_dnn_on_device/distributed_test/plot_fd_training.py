@@ -8,7 +8,7 @@ import os
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 # 拼接成文件的完整路径
-file_path = os.path.join(script_dir, 'log_fd_leader.txt')
+file_path = os.path.join(script_dir, 'log_worker.txt')
 
 # 使用完整路径打开文件
 with open(file_path, 'r', encoding='utf-8') as f:
@@ -57,6 +57,7 @@ def parse_fl_log(text):
     return data
 
 def plot_curves(data):
+    save_path = 'distributed_dnn_on_device/distributed_test/output/'
     epochs = [d['epoch'] for d in data]
     
     # 提取各列数据，如果某一行没有该数据，则填充 None (matplotlib 会自动跳过 None 的点)
@@ -88,6 +89,7 @@ def plot_curves(data):
     plt.legend(fontsize=10, loc='best')
     
     plt.tight_layout()
+    plt.savefig(save_path + 'plot_fd_worker.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 if __name__ == "__main__":
