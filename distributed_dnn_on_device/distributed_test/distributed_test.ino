@@ -23,7 +23,7 @@
 #define DATA_TYPE_FLOAT  // 定义数据类型为 float
 
 // 网络结构（需要与训练时一致，必须与训练代码中的 NN_def 一致）
-#include "data_czh.h"       // 包含测试数据和标签（需要 test_data, test_labels, test_data_cnt）
+#include "data_fje.h"       // 包含测试数据和标签（需要 test_data, test_labels, test_data_cnt）
 static const int NN_def[] = {first_layer_input_cnt, 32, classes_cnt};
 #include "NN_functions.h"   // 神经网络函数
 #include "inference.h"      // 训练好的权重数组 
