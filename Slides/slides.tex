@@ -50,10 +50,10 @@
     \item Target task: classify IMU segments into multiple gestures / movements in ``Spell Game''.
     \item Federated learning on two boards, communication through BLE
     \item Constraint: training \textbf{directly on the board}
-      with very limited RAM and compute.
+      with very limited RAM and compute. BLE transmitting limitation.
   \end{itemize}
 \end{frame}
-
+\begin{comment}
 \begin{frame}{Why Federated Learning on Tiny Devices?}
   \begin{itemize}
     \item In many IoT scenarios, there are \textbf{multiple devices}
@@ -70,6 +70,7 @@
       \end{itemize}
   \end{itemize}
 \end{frame}
+\end{comment}
 
 % ===================== Section 2: Data & Features =====================
 \section{Data \& Feature Extraction}
@@ -103,7 +104,7 @@
   \end{column}
 \end{columns}
 \end{frame}
-
+\begin{comment}
 \begin{frame}{Why Not Use Raw 201 $\times$ 9 Data on Board?}
   \begin{itemize}
     \item Flattened vector length: $201 \times 9 = 1809$ features.
@@ -121,6 +122,7 @@
     \item Solution: \textbf{compress each segment into 75 scalar features}.
   \end{itemize}
 \end{frame}
+\end{comment}
 
 \begin{frame}{75-D Feature Extraction (Python)}
   \small
@@ -150,6 +152,7 @@
   \end{itemize}
 \end{frame}
 
+\begin{comment}
 \begin{frame}{Train / Val / Test Split}
   \begin{itemize}
     \item Python preprocessing:
@@ -172,6 +175,7 @@
   % \includegraphics[width=0.8\textwidth]{split_barplot.pdf}
   %{\small \textit{\% Placeholder for class distribution / split visualization}}
 \end{frame}
+\end{comment}
 
 % ===================== Section 3: On-Device NN =====================
 \section{On-Device Neural Network}
@@ -198,7 +202,7 @@
       \end{itemize}
   \end{itemize}
 \end{frame}
-
+\begin{comment}
 \begin{frame}{On-Device Data \& Normalization}
   \begin{itemize}
     \item \texttt{data.h} contains:
@@ -241,7 +245,7 @@
     \item Accuracy monitored on train / val / test after each epoch.
   \end{itemize}
 \end{frame}
-
+\end{comment}
 % ===================== Section 4: Federated Learning Design =====================
 \section{Federated Learning Design}
 
@@ -261,7 +265,7 @@
     \item No raw sensor data is transmitted.
   \end{itemize}
 \end{frame}
-
+\begin{comment}
 \begin{frame}{Parameter Packing for BLE}
   \begin{itemize}
     \item In the C code, the network is represented as:
@@ -281,6 +285,7 @@
       between the two boards.
   \end{itemize}
 \end{frame}
+\end{comment}
 
 \begin{frame}{Simple Federated Averaging}
   \begin{itemize}
@@ -290,22 +295,13 @@
       \]
       where $w_k$ is client $k$'s local weights.
     \item In our prototype with two boards:
-      \begin{itemize}
-        \item Use equal weighting as an approximation:
+    Use equal weighting as an approximation:
           \[
             w_{\text{new}} = \frac{w_A + w_B}{2}.
           \]
-        \item Implemented in \texttt{packUnpackVector(AVERAGE)}.
-      \end{itemize}
-    \item Federated round:
-      \begin{enumerate}
-        \item Each board trains locally for some epochs.
-        \item Exchange weight buffers via BLE.
-        \item Average and update local networks.
-      \end{enumerate}
   \end{itemize}
 \end{frame}
-
+\begin{comment}
 \begin{frame}{Federated Training Schedule}
   \begin{itemize}
     \item Example schedule:
@@ -327,6 +323,68 @@
       \end{itemize}
   \end{itemize}
 \end{frame}
+
+
+
+\begin{frame}{On-Device Training Curves}
+\centering
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.33\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/curve_local_A.png}
+    {\scriptsize Local on Board A}
+  \end{column}
+  \begin{column}{0.33\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/curve_local_B.png}
+    {\scriptsize Local on Board B}
+  \end{column}
+  \begin{column}{0.33\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/curve_fedavg_AB.png}
+    {\scriptsize Federated (A+B, FedAvg)}
+  \end{column}
+\end{columns}
+
+\vspace{0.4em}
+\scriptsize
+\begin{itemize}
+  \item Local training adapts well to its own user/device distribution.
+  \item Federated training improves \textbf{cross-user generalization} without sharing raw IMU data.
+\end{itemize}
+\end{frame}
+\end{comment}
+
+
+\begin{frame}{Confusion Matrices: Local Training on Board A}
+\centering
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.33\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/cm_Atrain_testA.png}
+    {\scriptsize Train A \(\rightarrow\) Test A}
+  \end{column}
+  \begin{column}{0.33\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/cm_Atrain_testB.png}
+    {\scriptsize Train A \(\rightarrow\) Test B}
+  \end{column}
+  \begin{column}{0.33\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/cm_Atrain_testC.png}
+    {\scriptsize Train A \(\rightarrow\) Test C}
+  \end{column}
+\end{columns}
+
+\vspace{0.3em}
+\scriptsize
+\begin{itemize}
+  \item Best performance on \textbf{in-domain} test (A\(\rightarrow\)A).
+  \item Accuracy drops on B/C due to \textbf{non-IID user motion patterns}.
+\end{itemize}
+\end{frame}
+
+
 
 % ===================== Section 5: PC Experiments =====================
 \begin{frame}{PC-Side Reference Training (PyTorch)}
