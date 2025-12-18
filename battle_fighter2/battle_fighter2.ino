@@ -64,9 +64,10 @@ const char* getBattleResult(int classA, int classB) {
 }
 
 inference_result_t resultA = {0, 0.0f, 0};
+unsigned long resultA_received_time = 0;  // Local time when resultA was received
 
 void connectAndReceiveInference(BLEDevice peripheral);
-void checkBattleResult(inference_result_t resultA, inference_result_t resultB);
+bool checkBattleResult(inference_result_t resultA, inference_result_t resultB, unsigned long localTimeDiff);
 
 void extractFeatures(float features[75]) {
   int num_samples = numSamples;
@@ -163,12 +164,11 @@ int inferenceWithProbabilities(const DATA_TYPE* input_data, DATA_TYPE* probabili
   return maxIndx;
 }
 
-void checkBattleResult(inference_result_t resultA, inference_result_t resultB) {
-  unsigned long timeDiff = (resultA.timestamp_ms > resultB.timestamp_ms) ? 
-                           (resultA.timestamp_ms - resultB.timestamp_ms) : 
-                           (resultB.timestamp_ms - resultA.timestamp_ms);
+bool checkBattleResult(inference_result_t resultA, inference_result_t resultB, unsigned long localTimeDiff) {
+  // Use local time difference (both timestamps from same device) instead of absolute timestamps
+  // Returns true if valid match, false if invalid
   
-  if (timeDiff < 4000) {
+  if (localTimeDiff < 4000) {
     Serial.println("========================================");
     Serial.println("--- BATTLE RESULT (Valid Match) ---");
     Serial.print("NODE_A: ");
@@ -189,27 +189,29 @@ void checkBattleResult(inference_result_t resultA, inference_result_t resultB) {
     Serial.print(resultB.timestamp_ms);
     Serial.println(" ms");
     
-    Serial.print("Time Difference: ");
-    Serial.print(timeDiff);
+    Serial.print("Time Difference (local): ");
+    Serial.print(localTimeDiff);
     Serial.println(" ms");
     
     Serial.print("Result: ");
     Serial.println(getBattleResult(resultA.predicted_class, resultB.predicted_class));
     Serial.println("========================================");
+    return true;  // Valid match
   } else {
     Serial.println("========================================");
     Serial.println("--- Invalid Match (Time Difference Too Large) ---");
-    Serial.print("NODE_A Time: ");
+    Serial.print("NODE_A Time (remote): ");
     Serial.print(resultA.timestamp_ms);
     Serial.println(" ms");
-    Serial.print("NODE_B Time: ");
+    Serial.print("NODE_B Time (local): ");
     Serial.print(resultB.timestamp_ms);
     Serial.println(" ms");
-    Serial.print("Time Difference: ");
-    Serial.print(timeDiff);
+    Serial.print("Time Difference (local): ");
+    Serial.print(localTimeDiff);
     Serial.println(" ms (>= 4000ms)");
-    Serial.println("Both results reset. Waiting for new match...");
+    Serial.println("Waiting for valid match...");
     Serial.println("========================================");
+    return false;  // Invalid match, keep results for next check
   }
 }
 
@@ -321,6 +323,7 @@ void connectAndReceiveInference(BLEDevice peripheral) {
       int infLen = inferenceResultChar.readValue((uint8_t*)&result, sizeof(result));
       if (infLen == sizeof(result) && result.timestamp_ms != lastInferenceResult.timestamp_ms) {
         resultA = result;
+        resultA_received_time = millis();  // Record local receive time
         
         Serial.println("========================================");
         Serial.print("--- Inference Result from NODE_A ---");
@@ -343,14 +346,26 @@ void connectAndReceiveInference(BLEDevice peripheral) {
       }
     }
     
-    // Poll both results periodically using timestamp as lock
+    // Poll both results periodically - simple and effective
+    // Check if both results exist, validate time difference, then process
     unsigned long currentTime = millis();
     if (currentTime - lastCheckTime >= CHECK_INTERVAL) {
       lastCheckTime = currentTime;
-      if (resultA.timestamp_ms != 0 && cachedResultB.timestamp_ms != 0) {
-        checkBattleResult(resultA, cachedResultB);
-        resultA.timestamp_ms = 0;
-        cachedResultB.timestamp_ms = 0;
+      if (resultA_received_time != 0 && cachedResultB.timestamp_ms != 0) {
+        // Both results exist, calculate local time difference
+        unsigned long localTimeDiff = (resultA_received_time > cachedResultB.timestamp_ms) ?
+                                      (resultA_received_time - cachedResultB.timestamp_ms) :
+                                      (cachedResultB.timestamp_ms - resultA_received_time);
+        
+        // Check battle result - only reset if valid match
+        bool isValid = checkBattleResult(resultA, cachedResultB, localTimeDiff);
+        if (isValid) {
+          // Valid match, reset both results and continue polling
+          resultA.timestamp_ms = 0;
+          resultA_received_time = 0;
+          cachedResultB.timestamp_ms = 0;
+        }
+        // If invalid, keep results and continue polling (waiting for valid match)
       }
     }
     
@@ -414,7 +429,7 @@ void connectAndReceiveInference(BLEDevice peripheral) {
       
       cachedResultB.predicted_class = predicted_class;
       cachedResultB.confidence = confidence;
-      cachedResultB.timestamp_ms = millis();
+      cachedResultB.timestamp_ms = millis();  // Record local generation time
       
       Serial.println("--- Inference Result (Node B) ---");
       Serial.print("  Predicted Class: ");
@@ -429,11 +444,8 @@ void connectAndReceiveInference(BLEDevice peripheral) {
       Serial.print(cachedResultB.timestamp_ms);
       Serial.println(" ms");
       
-      if (resultA.timestamp_ms != 0) {
-        checkBattleResult(resultA, cachedResultB);
-        resultA.timestamp_ms = 0;
-        cachedResultB.timestamp_ms = 0;
-      }
+      // Note: Battle result checking is handled by periodic polling (every 100ms)
+      // to avoid matching with stale results from NODE_A
       
       Serial.println("Press button to collect next sample...");
       samplesRead = numSamples;

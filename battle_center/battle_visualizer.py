@@ -34,9 +34,6 @@ except ImportError:
 
 # ========== Configuration ==========
 # Serial port configuration
-# macOS: '/dev/tty.usbmodem1301' or use '*' to auto-detect
-# Windows: 'COM3', 'COM4', etc.
-# Linux: '/dev/ttyUSB0', '/dev/ttyACM0', etc.
 SERIAL_PORT = '/dev/tty.usbmodem12101'  # Specific port, or use None for auto-detect
 BAUD_RATE = 9600
 WINDOW_WIDTH = 1200
