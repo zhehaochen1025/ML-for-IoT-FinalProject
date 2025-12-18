@@ -1,88 +1,41 @@
-/*
-  IMU Classifier - C数组推理版本
-
-  这个版本使用C数组方式替代TensorFlow Lite进行推理
-  优势：更轻量、更快、内存占用更小
-
-  The circuit:
-  - Arduino Nano 33 BLE or Arduino Nano 33 BLE Sense board.
-
-  改编自原始 TensorFlow Lite 版本
-*/
-
 #include <Arduino_LSM9DS1.h>
 #include <TinyMLShield.h>
-
-// ========== 神经网络相关头文件 ==========
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
 
-// NN parameters（需要与训练时一致）
 #define LEARNING_RATE 0.001
 #define EPOCH 50
 #define DATA_TYPE_FLOAT
 
-// 网络参数（推理时只需要这两个常量，不需要整个 data.h）
-const int first_layer_input_cnt = 75;  // 输入特征维度
-const int classes_cnt = 4;              // 类别数量
+const int first_layer_input_cnt = 75;  
+const int classes_cnt = 4;            
 
-// 网络结构（需要与训练时一致）
 static const unsigned int NN_def[] = {first_layer_input_cnt, 64, classes_cnt};
-#include "NN_functions.h"   // 神经网络函数
-#include "inference.h"      // 训练好的权重数组 
-// ========== IMU 参数 ==========
-// 训练配置：2秒窗口
-// 如果训练时使用100Hz采样率：2秒 × 100Hz = 200个样本
-// 如果训练时使用119Hz采样率：2秒 × 119Hz = 238个样本
-// 注意：必须与训练时的样本数量一致！
-
-// 根据你的训练配置选择：
-// 选项1：如果训练时是100Hz，2秒窗口 = 200个样本
-// const int numSamples = 200;
-// const int targetSampleRate = 100;  // 目标采样率（Hz）
-
-// 选项2：如果训练时是119Hz，2秒窗口 = 238个样本（推荐，因为Arduino默认119Hz）
+#include "NN_functions.h"   
+#include "inference.h"      
 const int numSamples = 238;
 const int targetSampleRate = 119;
 
-// 选项3：如果训练时实际用的是119个样本（约1秒窗口）
-// const int numSamples = 119;
-// const int targetSampleRate = 119;
-
-const unsigned long sampleIntervalMs = 1000 / targetSampleRate;  // 采样间隔（毫秒）：1000ms / 100Hz = 10ms
+const unsigned long sampleIntervalMs = 1000 / targetSampleRate;  
 
 int samplesRead = numSamples;
 
-// ========== 数据缓冲区 ==========
-// 存储IMU原始数据：numSamples个样本 × 6个值（ax, ay, az, gx, gy, gz）
-float imu_buffer[238][9];  // 根据numSamples调整大小（最大238）
-
-// ========== 类别名称 ==========
+float imu_buffer[238][9]; 
 const char* GESTURES[] = {
-  "circle",  // 0
-  "other",   // 1
-  "peak",    // 2
-  "wave"     // 3
+  "circle",  
+  "other",  
+  "peak",   
+  "wave" 
 };
 
 #define NUM_GESTURES (sizeof(GESTURES) / sizeof(GESTURES[0]))
 
-// ========== 特征提取函数 ==========
-// 从IMU缓冲区提取75维特征向量
-// 此函数必须与 data_prepare.ipynb 中的 extract_features() 逻辑完全一致
-// Python版本：从 (T, 9) 数据提取 75 维特征
 void extractFeatures(float features[75]) {
-  // 使用全局的numSamples，确保与训练时一致
   int num_samples = numSamples;
-  
-  // 临时数组：直接使用9维IMU数据
-  // 训练数据包含：ax, ay, az, gx, gy, gz, magX, magY, magZ (9维)
-  // CBOR原始数据就是这9维，不需要转换！
-  static float data_9d[238][9];  // 最大238，根据实际numSamples使用
+  static float data_9d[238][9]; 
   
   for (int i = 0; i < num_samples; i++) {
-    // 直接复制所有9维数据
     data_9d[i][0] = imu_buffer[i][0]; // ax
     data_9d[i][1] = imu_buffer[i][1]; // ay
     data_9d[i][2] = imu_buffer[i][2]; // az
@@ -96,8 +49,6 @@ void extractFeatures(float features[75]) {
   
   int feat_idx = 0;
   
-  // 1) 全局统计：mean, std, min, max -> 9 * 4 = 36维
-  // 与Python: means = v.mean(axis=0), stds = v.std(axis=0), mins = v.min(axis=0), maxs = v.max(axis=0)
   for (int d = 0; d < 9; d++) {
     float sum = 0.0, sum_sq = 0.0, min_val = data_9d[0][d], max_val = data_9d[0][d];
     
@@ -124,8 +75,7 @@ void extractFeatures(float features[75]) {
     features[feat_idx++] = max_val;
   }
   
-  // 2) 时间分三段，每段算 mean -> 3 * 9 = 27维
-  // 与Python: segments = np.array_split(v, 3, axis=0), seg_mean = seg.mean(axis=0)
+  // Python: segments = np.array_split(v, 3, axis=0), seg_mean = seg.mean(axis=0)
   int segment_size = num_samples / 3;
   for (int seg = 0; seg < 3; seg++) {
     int start = seg * segment_size;
@@ -141,8 +91,7 @@ void extractFeatures(float features[75]) {
     }
   }
   
-  // 3) 每个通道的 energy（均方）-> 9维
-  // 与Python: energy = (v ** 2).mean(axis=0)
+  // python: energy = (v ** 2).mean(axis=0)
   for (int d = 0; d < 9; d++) {
     float sum_sq = 0.0;
     for (int i = 0; i < num_samples; i++) {
@@ -151,9 +100,8 @@ void extractFeatures(float features[75]) {
     }
     features[feat_idx++] = sum_sq / num_samples;
   }
-  
-  // 4) 三个向量模长的均值（与Python代码一致：先计算模长，再求均值）-> 3维
-  // accel magnitude: sqrt((ax^2 + ay^2 + az^2)) 的均值
+
+  // accel magnitude
   float accel_mag_sum = 0.0;
   for (int i = 0; i < num_samples; i++) {
     float mag = sqrt(data_9d[i][0]*data_9d[i][0] + 
@@ -163,7 +111,7 @@ void extractFeatures(float features[75]) {
   }
   features[feat_idx++] = accel_mag_sum / num_samples;
   
-  // gyro magnitude: sqrt((gx^2 + gy^2 + gz^2)) 的均值
+  // gyro magnitude
   float gyro_mag_sum = 0.0;
   for (int i = 0; i < num_samples; i++) {
     float mag = sqrt(data_9d[i][3]*data_9d[i][3] + 
@@ -173,7 +121,7 @@ void extractFeatures(float features[75]) {
   }
   features[feat_idx++] = gyro_mag_sum / num_samples;
   
-  // magnetometer magnitude: sqrt((magX^2 + magY^2 + magZ^2)) 的均值
+  // magnetometer magnitude
   float ori_mag_sum = 0.0;
   for (int i = 0; i < num_samples; i++) {
     float mag = sqrt(data_9d[i][6]*data_9d[i][6] + 
@@ -182,38 +130,30 @@ void extractFeatures(float features[75]) {
     ori_mag_sum += mag;
   }
   features[feat_idx++] = ori_mag_sum / num_samples;
-  
-  // 验证特征维度
+
   if (feat_idx != 75) {
-    Serial.print("错误：特征维度不匹配！期望75，实际");
+    Serial.print("Error: Feature dimension mismatch! Expected 75, actual");
     Serial.println(feat_idx);
-    // 填充剩余维度为0（防止数组越界）
     while (feat_idx < 75) {
       features[feat_idx++] = 0.0;
     }
-  }
-  
-  // 特征提取完成，与 data_prepare.ipynb 中的 extract_features() 逻辑一致
-  // 下一步：归一化（在 inference() 函数内部自动完成）
+  }  
 }
 
 void setup() {
   Serial.begin(9600);
   while (!Serial);
   
-  Serial.println("IMU Classifier - C数组推理版本");
+  Serial.println("IMU Classifier");
   Serial.println("================================");
   
-  // 初始化 TinyML Shield（包含按钮）
   initializeShield();
   
-  // 初始化 IMU
   if (!IMU.begin()) {
     Serial.println("Failed to initialize IMU!");
     while (1);
   }
-  
-  // 打印 IMU 采样率
+
   int actualAccelRate = IMU.accelerationSampleRate();
   int actualGyroRate = IMU.gyroscopeSampleRate();
   
@@ -224,71 +164,51 @@ void setup() {
   Serial.print(actualGyroRate);
   Serial.println(" Hz");
   
-  Serial.print("目标采样率 = ");
+  Serial.print("Target sample rate = ");
   Serial.print(targetSampleRate);
   Serial.println(" Hz");
-  Serial.print("窗口大小 = ");
+  Serial.print("Window size = ");
   Serial.print(numSamples);
-  Serial.print(" 个样本 (");
+  Serial.print(" samples (");
   Serial.print((float)numSamples / targetSampleRate, 2);
-  Serial.println(" 秒)");
-  Serial.print("采样间隔 = ");
+  Serial.println(" seconds)");
+  Serial.print("Sampling interval = ");
   Serial.print(sampleIntervalMs);
   Serial.println(" ms");
   Serial.println();
   
-  // 警告：如果实际采样率与目标不一致
-  if (abs(actualAccelRate - targetSampleRate) > 5) {
-    Serial.print("⚠️  警告：实际采样率(");
-    Serial.print(actualAccelRate);
-    Serial.print("Hz) 与目标采样率(");
-    Serial.print(targetSampleRate);
-    Serial.println("Hz) 不一致！");
-    Serial.println("   这可能导致推理结果不准确。");
-    Serial.println();
-  }
+  Serial.println("Initializing neural network...");
   
-  // ========== 初始化神经网络 ==========
-  Serial.println("正在初始化神经网络...");
-  
-  // 计算权重数量
   int weights_bias_cnt = calcTotalWeightsBias();
-  Serial.print("权重数量: ");
+  Serial.print("Number of weights: ");
   Serial.println(weights_bias_cnt);
-  
-  // 分配权重内存
+
   DATA_TYPE* WeightBiasPtr = (DATA_TYPE*) calloc(weights_bias_cnt, sizeof(DATA_TYPE));
   
-  // 设置网络
   setupNN(WeightBiasPtr);
   
-  // 加载训练好的权重
-  Serial.println("正在加载模型权重...");
+  Serial.println("Loading model weights...");
   loadModel(trained_weights);
   
-  Serial.println("模型加载完成！");
-  Serial.println("按TinyShield按钮开始采集数据...");
+  Serial.println("Model loaded!");
+  Serial.println("Press TinyShield button to start collecting data...");
   Serial.println();
 }
 
 void loop() {
   float aX, aY, aZ, gX, gY, gZ, mX, mY, mZ;
   
-  // ========== 等待按钮按下 ==========
   while (samplesRead == numSamples) {
     bool buttonClicked = readShieldButton();
     if (buttonClicked) {
-      Serial.println("按钮按下，开始采集数据...");
+      Serial.println("Button pressed, starting to collect data...");
       samplesRead = 0;
       break;
     }
   }
   
-  // ========== 采集IMU数据 ==========
-  // 使用定时采样，确保采样率与训练时一致
   static unsigned long lastSampleTime = 0;
   
-  // 如果是第一次采样，初始化时间
   if (samplesRead == 0) {
     lastSampleTime = millis();
   }
@@ -296,17 +216,16 @@ void loop() {
   while (samplesRead < numSamples) {
     unsigned long currentTime = millis();
     
-    // 检查是否到了采样时间
     static float lastMX = 0, lastMY = 0, lastMZ = 0;
 
 if (currentTime - lastSampleTime >= sampleIntervalMs) {
 
-  // accel + gyro 是主频
+  // accel + gyro is the main frequency
   if (IMU.accelerationAvailable() && IMU.gyroscopeAvailable()) {
     IMU.readAcceleration(aX, aY, aZ);
     IMU.readGyroscope(gX, gY, gZ);
 
-    // mag 有就更新，没有就用上次的
+    // mag has to be updated, if not, use the last one
     if (IMU.magneticFieldAvailable()) {
       IMU.readMagneticField(lastMX, lastMY, lastMZ);
     }
@@ -321,40 +240,34 @@ if (currentTime - lastSampleTime >= sampleIntervalMs) {
     imu_buffer[samplesRead][7] = lastMY;
     imu_buffer[samplesRead][8] = lastMZ;
 
-    lastSampleTime += sampleIntervalMs; // 比 lastSampleTime=currentTime 更稳
+    lastSampleTime += sampleIntervalMs; // more stable than lastSampleTime=currentTime
     samplesRead++;
   }
 }
   }
-  
-  // ========== 采集完成后进行推理 ==========
+
   if (samplesRead == numSamples) {
-    // 1. 提取特征
+    // 1. extract features
     float features[75];
     extractFeatures(features);
     
-    // 2. 执行推理（超简单！只需一行）
+    // 2. execute inference
     int predicted_class = inference(features);
     
-    // 3. 获取概率（可选）
+    // 3. get probabilities
     float probabilities[classes_cnt];
     inferenceWithProbabilities(features, probabilities);
     
-    // 4. 输出结果
-    Serial.println("--- 推理结果 ---");
-    Serial.print("预测类别: ");
+    // 4. output results
+    Serial.println("Inference results:");
+    Serial.print("Predicted class: ");
     Serial.print(predicted_class);
     Serial.print(" (");
-    if (predicted_class < NUM_GESTURES) {
-      Serial.print(GESTURES[predicted_class]);
-    }
+    Serial.print(GESTURES[predicted_class]);
     Serial.print(")");
-    Serial.print(" - 置信度: ");
+    Serial.print(" - Confidence: ");
     Serial.print(probabilities[predicted_class] * 100, 2);
     Serial.println("%");
-    
-    // 输出所有类别的概率
-    Serial.println("所有类别概率:");
     for (int i = 0; i < NUM_GESTURES; i++) {
       Serial.print("  ");
       Serial.print(GESTURES[i]);

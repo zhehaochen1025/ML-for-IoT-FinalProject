@@ -88,8 +88,8 @@ void destroy() {
   Serial.println("Finished training, shutting down.");
   printAccuracy();
   
-  // 保存训练好的模型参数
-  Serial.println("\n========== 训练完成，输出模型参数 ==========");
+  // save model
+  Serial.println("\nTraining completed, saving model...");
   saveModel(iter_cnt);
   
 #if ENABLE_BLE

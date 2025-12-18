@@ -1,41 +1,24 @@
-/*
- * 测试集推理 - 用于在测试集上评估模型性能
- * 
- * 功能：
- * 1. 加载训练好的模型权重
- * 2. 对测试集中的每个样本进行推理
- * 3. 输出真实标签和预测标签（格式：真实标签,预测标签）
- * 
- * 使用方法：
- * 1. 将训练后保存的权重数组粘贴到下面的 trained_weights 数组中
- * 2. 上传到 Arduino
- * 3. 打开串口监视器查看结果
- * 4. 复制输出结果到 Python 脚本生成混淆矩阵
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
-// NN parameters（需要与训练时一致）
+// NN parameters
 #define LEARNING_RATE 0.001
 #define EPOCH 50
-#define DATA_TYPE_FLOAT  // 定义数据类型为 float
+#define DATA_TYPE_FLOAT
 
-// 网络结构（需要与训练时一致，必须与训练代码中的 NN_def 一致）
-#include "data_czh.h"       // 包含测试数据和标签（需要 test_data, test_labels, test_data_cnt）
+// Network structure
+#include "data_czh.h"
 static const int NN_def[] = {first_layer_input_cnt, 32, classes_cnt};
-#include "NN_functions.h"   // 神经网络函数
-#include "inference.h"      // 训练好的权重数组 
+#include "NN_functions.h"
+#include "inference.h"
 
- 
-// ========== 类别名称映射 ==========
-// 权重数组定义在 inference.h 文件中
+// Class names
 const char* class_names[] = {
-  "circle",  // 0
-  "other",   // 1
-  "peak",    // 2
-  "wave"     // 3
+  "circle",
+  "other",
+  "peak",
+  "wave"
 };
  
 void setup() {
@@ -44,58 +27,46 @@ void setup() {
   while (!Serial);
   
   Serial.println("======================================");
-  Serial.println("测试集推理程序");
+  Serial.println("Test Set Inference Program");
   Serial.println("======================================");
   Serial.println();
    
-  // 计算权重数量
   int weights_bias_cnt = calcTotalWeightsBias();
-  Serial.print("权重数量: ");
+  Serial.print("Total weights: ");
   Serial.println(weights_bias_cnt);
   
-  // 检查权重数组是否为空（如果数组只有一个元素且为0，可能表示未初始化）
   int weights_array_size = sizeof(trained_weights) / sizeof(trained_weights[0]);
   if (weights_array_size == 0 || (weights_array_size == 1 && trained_weights[0] == 0.0f)) {
-    Serial.println("错误：权重数组为空或未初始化！");
-    Serial.println("请先运行分布式训练程序训练模型，然后将权重数组复制到 inference.h 中。");
-    Serial.print("当前权重数组大小: ");
+    Serial.println("Error: Weight array is empty or uninitialized!");
+    Serial.println("Please run the distributed training program first, then copy the weight array to inference.h.");
+    Serial.print("Current weight array size: ");
     Serial.println(weights_array_size);
-    while(1); // 停止执行
+    while(1);
   }
   
-  Serial.print("权重数组大小: ");
+  Serial.print("Weight array size: ");
   Serial.println(weights_array_size);
   
-  // 分配权重内存
   DATA_TYPE* WeightBiasPtr = (DATA_TYPE*) calloc(weights_bias_cnt, sizeof(DATA_TYPE));
-  
-  // 设置网络
   setupNN(WeightBiasPtr);
   
-  // 加载训练好的权重
-  Serial.println("正在加载模型权重...");
+  Serial.println("Loading model weights...");
   loadModel(trained_weights);
   
   Serial.println();
-  Serial.println("开始测试集推理...");
-  Serial.println("输出格式：样本索引,真实标签,预测标签,真实标签名称,预测标签名称");
+  Serial.println("Starting test set inference...");
+  Serial.println("Output format: sample_index,true_label,predicted_label,true_label_name,predicted_label_name");
   Serial.println("--------------------------------------");
   
-  // 对测试集中的每个样本进行推理
   int correct_count = 0;
   for (int i = 0; i < test_data_cnt; i++) {
-    // 获取真实标签
     int true_label = test_labels[i];
-    
-    // 执行推理
     int predicted_label = inference(test_data[i]);
     
-    // 统计正确预测
     if (predicted_label == true_label) {
       correct_count++;
     }
     
-    // 输出结果：真实标签,预测标签（用于Python脚本处理）
     Serial.print(i);
     Serial.print(",");
     Serial.print(true_label);
@@ -108,7 +79,7 @@ void setup() {
   }
   
   Serial.println("--------------------------------------");
-  Serial.print("测试集准确率: ");
+  Serial.print("Test accuracy: ");
   Serial.print(correct_count);
   Serial.print("/");
   Serial.print(test_data_cnt);
@@ -116,12 +87,10 @@ void setup() {
   Serial.print((float)correct_count / test_data_cnt * 100.0, 2);
   Serial.println("%");
   Serial.println();
-  Serial.println("推理完成！请复制上面的输出结果到Python脚本生成混淆矩阵。");
+  Serial.println("Inference completed! Please copy the output above to a Python script to generate confusion matrix.");
   Serial.println("======================================");
 }
  
 void loop() {
-  // 推理只执行一次，完成后停止
-  // 如需重新运行，请按复位键
   delay(1000);
 }
