@@ -12,6 +12,7 @@
 \usepackage{listings}
 \usepackage{xcolor}
 
+\usepackage{multimedia}
 
 \usetheme{Copenhagen}
 \usecolortheme{seahorse}
@@ -27,7 +28,7 @@
   }
 }
 
-\title{Federated On-Device Training on Arduino Nano 33 BLE}
+\title{Federated Spellcasting Battle System}
 \author{Haoran Li\quad Jiuen Feng\quad Yuhe Bian\quad Zhehao Chen}
 \date{December 2025}
 
@@ -44,9 +45,9 @@
 \end{frame}
 
 % ===================== Section 1: Motivation =====================
-\section{Motivation \& Task}
+\section{Task}
 
-\begin{frame}{Project Context}
+\begin{frame}{Task}
   \begin{itemize}
     \item Hardware: \textbf{Arduino Nano 33 BLE} + TinyML Shield.
     \item Sensors: \textbf{IMU} -- accelerometer, gyroscope, orientation.
@@ -405,12 +406,12 @@ Reference: \href{https://github.com/niil87/Machine-Learning-for-IOT---Fall-2022-
 \begin{columns}[T,onlytextwidth]
   \begin{column}{0.49\textwidth}
     \centering
-    \includegraphics[width=\linewidth]{../BP/BP_test_inference/output/acc_plot_byh.png}
+    \includegraphics[width=\linewidth]{../BP_test_inference/output/acc_plot_byh.png}
     {\scriptsize Local Train with data\_byh}
   \end{column}
   \begin{column}{0.49\textwidth}
     \centering
-    \includegraphics[width=\linewidth]{../BP/BP_test_inference/output/acc_plot_fje.png}
+    \includegraphics[width=\linewidth]{../BP_test_inference/output/acc_plot_fje.png}
     {\scriptsize Local Train with data\_fje}
   \end{column}
 
@@ -428,13 +429,13 @@ Reference: \href{https://github.com/niil87/Machine-Learning-for-IOT---Fall-2022-
 \begin{columns}[T,onlytextwidth]
   \begin{column}{0.49\textwidth}
     \centering
-    \includegraphics[width=\linewidth]{../distributed_dnn_on_device/distributed_test/output/plot_fd_leader.png}
-    {\scriptsize TODO}
+    \includegraphics[width=\linewidth]{../distributed_test/output/plot_fd_leader.png}
+    {\scriptsize Performance Comparison: Local vs. Federated Training on Leader}
   \end{column}
   \begin{column}{0.49\textwidth}
     \centering
-    \includegraphics[width=\linewidth]{../distributed_dnn_on_device/distributed_test/output/plot_fd_worker.png}
-    {\scriptsize TODO}
+    \includegraphics[width=\linewidth]{../distributed_test/output/plot_fd_worker.png}
+    {\scriptsize Performance Comparison: Local vs. Federated Training on Worker}
   \end{column}
 \end{columns}
 
@@ -453,17 +454,17 @@ Reference: \href{https://github.com/niil87/Machine-Learning-for-IOT---Fall-2022-
 \begin{columns}[T,onlytextwidth]
   \begin{column}{0.33\textwidth}
     \centering
-    \includegraphics[width=\linewidth]{../BP/BP_test_inference/output/confusion_matrix_mbyh_dbyh.png}
+    \includegraphics[width=\linewidth]{../BP_test_inference/output/confusion_matrix_mbyh_dbyh.png}
     {\scriptsize Train byh \(\rightarrow\) Test byh\\acc = 82.50\%}
   \end{column}
   \begin{column}{0.33\textwidth}
     \centering
-    \includegraphics[width=\linewidth]{../BP/BP_test_inference/output/confusion_matrix_mbyh_dczh.png}
+    \includegraphics[width=\linewidth]{../BP_test_inference/output/confusion_matrix_mbyh_dczh.png}
     {\scriptsize Train byh \(\rightarrow\) Test czh\\ acc = 58.67\%}
   \end{column}
   \begin{column}{0.33\textwidth}
     \centering
-    \includegraphics[width=\linewidth]{../BP/BP_test_inference/output/confusion_matrix_mbyh_dfje.png}
+    \includegraphics[width=\linewidth]{../BP_test_inference/output/confusion_matrix_mbyh_dfje.png}
     {\scriptsize Train byh \(\rightarrow\) Test fje\\ acc =52.83\%}
   \end{column}
 \end{columns}
@@ -484,13 +485,13 @@ Reference: \href{https://github.com/niil87/Machine-Learning-for-IOT---Fall-2022-
 \begin{columns}[T,onlytextwidth]
   \begin{column}{0.33\textwidth}
     \centering
-    \includegraphics[width=\linewidth]{../distributed_dnn_on_device/distributed_test/output/confusion_matrix_databyh.png}
+    \includegraphics[width=\linewidth]{../distributed_test/output/confusion_matrix_databyh.png}
     {\scriptsize FedAvg \(\rightarrow\) Test byh\\acc = 85.00\%}
   \end{column}
 
   \begin{column}{0.33\textwidth}
     \centering
-    \includegraphics[width=\linewidth]{../distributed_dnn_on_device/distributed_test/output/confusion_matrix_datafje.png}
+    \includegraphics[width=\linewidth]{../distributed_test/output/confusion_matrix_datafje.png}
     {\scriptsize FedAvg \(\rightarrow\) Test fje \\acc = 73.58\%}
   \end{column}
 
@@ -498,7 +499,7 @@ Reference: \href{https://github.com/niil87/Machine-Learning-for-IOT---Fall-2022-
   
   \begin{column}{0.33\textwidth}
     \centering
-    \includegraphics[width=\linewidth]{../distributed_dnn_on_device/distributed_test/output/confusion_matrix_dataczh.png}
+    \includegraphics[width=\linewidth]{../distributed_test/output/confusion_matrix_dataczh.png}
     {\scriptsize FedAvg \(\rightarrow\) Test czh \\ acc = 62.67\%}
     \end{column}
   \end{columns}
@@ -620,12 +621,74 @@ Reference: \href{https://github.com/niil87/Machine-Learning-for-IOT---Fall-2022-
   \end{itemize}
 \end{frame}
 \end{comment}
+
+\begin{frame}{SpellGame Battle}
+\begin{itemize}
+  \item Two Nano 33 BLE boards (NODE\_A \& NODE\_B) perform \textbf{real-time gesture inference} on 2-second IMU windows.
+  \item PC visualizes gestures and determines winner using rock-paper-scissors rules:
+  \begin{center}
+  circle > wave > peak > circle
+  \end{center}
+  \item Predicted gestures are transmitted to the \textbf{IMU Battle Visualizer} (PC-based GUI).
+  \item PC displays:
+  \begin{itemize}
+    \item Both players' detected gestures simultaneously.
+    \item \textbf{History log} of past matches.
+    \item \textbf{Battle outcome} to verify inference accuracy and cross-user generalization.
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{SpellGame Battle}
+\textbf{Stability Issues Observed:}
+\begin{itemize}
+  \item Interface occasionally fails to \textbf{synchronize or display both gestures} simultaneously.
+  \item \textbf{Hypothesized causes:}
+  \begin{itemize}
+    \item BLE packet delays disrupt real-time data flow.
+    \item Temporal misalignment: users trigger gestures at different moments.
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{SpellGame Battle}
+\begin{itemize}
+  \item Two Nano 33 BLE boards (NODE\_A \& NODE\_B) perform \textbf{real-time gesture inference} on 2-second IMU windows.
+  \item PC visualizes gestures and determines winner using rock-paper-scissors rules:
+  \begin{center}
+  circle > wave > peak > circle
+  \end{center}
+  \item Predicted gestures are transmitted to the \textbf{IMU Battle Visualizer} (PC-based GUI).
+  \item PC displays:
+  \begin{itemize}
+    \item Both players' detected gestures simultaneously.
+    \item \textbf{History log} of past matches.
+    \item \textbf{Battle outcome} to verify inference accuracy and cross-user generalization.
+  \end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}
+\vspace{0.4em}
+\centering
+\includegraphics[width=0.75\linewidth]{figures/visualizer.jpg}
+
+\textbf{Stability Issues Observed:}
+\begin{itemize}
+  \item Interface occasionally fails to \textbf{synchronize or display both gestures} simultaneously.
+  \item \textbf{Hypothesized causes:}
+  \begin{itemize}
+    \item BLE packet delays disrupt real-time data flow.
+    \item Temporal misalignment: users trigger gestures at different moments.
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Demo Video}
 \centering
 
-\href{run:demo.mp4}{▶ Click to watch demo video}
+\movie[externalviewer]{▶ Click to watch demo}{demo.mp4}
 
-% 注意：空格用 %20 替换
 \end{frame}
 
 % ===================== Section 7: Summary =====================
@@ -641,15 +704,14 @@ Reference: \href{https://github.com/niil87/Machine-Learning-for-IOT---Fall-2022-
       \end{itemize}
     \item Implemented a small \textbf{on-device neural network}:
       \begin{itemize}
-        \item 75--64--\texttt{classes\_cnt}, ReLU + softmax, SGD training.
+        \item 75--32--\texttt{classes\_cnt}, ReLU + softmax, SGD training.
       \end{itemize}
     \item Designed and tested a \textbf{federated learning prototype}:
       \begin{itemize}
         \item Two Nano 33 BLE boards exchanging weights via BLE.
         \item Simple parameter averaging after local training epochs.
       \end{itemize}
-    \item Demonstrated that even with tight resource constraints,
-      federated ideas can be prototyped on microcontrollers.
+    \item Build a Federated Spellcasting Battle System 
   \end{itemize}
 \end{frame}
 
