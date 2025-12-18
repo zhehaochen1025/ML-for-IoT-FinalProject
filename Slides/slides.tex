@@ -205,6 +205,41 @@
       \end{itemize}
   \end{itemize}
 \end{frame}
+
+
+\begin{frame}{PC-Side Reference Training (PyTorch)}
+  \begin{itemize}
+    \item Use exactly the same 75-D feature vectors as on the Arduino:
+      %\begin{itemize}
+       % \item Dataset merged from all \texttt{.npz} files:
+        %  about 180 training, 45 validation and 58 test samples, 4 classes.
+        %\item Network on PC is identical to on-device network:
+         % \[ 75 \rightarrow 64 \rightarrow \texttt{classes\_cnt} \]
+        %\item Loss: cross-entropy, optimizer: SGD with \texttt{lr = 0.0015},
+         % batch size 1 (to mimic on-device training).
+      %\end{itemize}
+    \item Results:
+      \begin{itemize}
+        \item After about 50 epochs, validation accuracy reaches
+          \(\approx 95\%\).
+        \item This PC model is used as an \textbf{upper-bound reference}
+          for on-device learning performance.
+      \end{itemize}
+
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/training_loss_acc.png}
+
+
+  {\small \textit{PC-side centralized training reaches $\sim$95\% val.\ accuracy in $\sim$50 epochs.}}
+\end{frame}
+
+
 \begin{comment}
 \begin{frame}{On-Device Data \& Normalization}
   \begin{itemize}
@@ -330,11 +365,9 @@ Reference: \href{https://github.com/niil87/Machine-Learning-for-IOT---Fall-2022-
 
 \begin{frame}{Simple Federated Averaging}
   \begin{itemize}
-    \item In standard FedAvg:
-      \[
-        w^{(t+1)} = \sum_{k} \frac{n_k}{N} w_k^{(t+1)},
-      \]
-      where $w_k$ is client $k$'s local weights.
+    %  w^{(t+1)} = \sum_{k} \frac{n_k}{N} w_k^{(t+1)},
+     % \]
+      %where $w_k$ is client $k$'s local weights.
     \item In our prototype with two boards:
     Use equal weighting as an approximation:
           \[
@@ -452,13 +485,13 @@ Reference: \href{https://github.com/niil87/Machine-Learning-for-IOT---Fall-2022-
   \begin{column}{0.33\textwidth}
     \centering
     \includegraphics[width=\linewidth]{../distributed_dnn_on_device/distributed_test/output/confusion_matrix_databyh.png}
-    {\scriptsize FedAvg \(\rightarrow\) Test byh}
+    {\scriptsize FedAvg \(\rightarrow\) Test byh\\acc = 85.00\%}
   \end{column}
 
   \begin{column}{0.33\textwidth}
     \centering
     \includegraphics[width=\linewidth]{../distributed_dnn_on_device/distributed_test/output/confusion_matrix_datafje.png}
-    {\scriptsize FedAvg \(\rightarrow\) Test fje}
+    {\scriptsize FedAvg \(\rightarrow\) Test fje \\acc = 73.58\%}
   \end{column}
 
 
@@ -466,9 +499,9 @@ Reference: \href{https://github.com/niil87/Machine-Learning-for-IOT---Fall-2022-
   \begin{column}{0.33\textwidth}
     \centering
     \includegraphics[width=\linewidth]{../distributed_dnn_on_device/distributed_test/output/confusion_matrix_dataczh.png}
-    {\scriptsize FedAvg \(\rightarrow\) Test czh}
-      \end{column}
-\end{columns}
+    {\scriptsize FedAvg \(\rightarrow\) Test czh \\ acc = 62.67\%}
+    \end{column}
+  \end{columns}
 
 \vspace{0.3em}
 \scriptsize
@@ -483,39 +516,9 @@ Reference: \href{https://github.com/niil87/Machine-Learning-for-IOT---Fall-2022-
 
 
 % ===================== Section 5: PC Experiments =====================
-\begin{frame}{PC-Side Reference Training (PyTorch)}
-  \begin{itemize}
-    \item Use exactly the same 75-D feature vectors as on the Arduino:
-      \begin{itemize}
-        \item Dataset merged from all \texttt{.npz} files:
-          about 180 training, 45 validation and 58 test samples, 4 classes.
-        \item Network on PC is identical to on-device network:
-          \[ 75 \rightarrow 64 \rightarrow \texttt{classes\_cnt} \]
-        \item Loss: cross-entropy, optimizer: SGD with \texttt{lr = 0.0015},
-          batch size 1 (to mimic on-device training).
-      \end{itemize}
-    \item Results:
-      \begin{itemize}
-        \item After about 50 epochs, validation accuracy reaches
-          \(\approx 95\%\).
-        \item This PC model is used as an \textbf{upper-bound reference}
-          for on-device learning performance.
-      \end{itemize}
-
-  \end{itemize}
-\end{frame}
 
 
-\begin{frame}
-
-  \centering
-  \includegraphics[width=0.9\textwidth]{figures/training_loss_acc.png}
-
-
-  {\small \textit{PC-side centralized training reaches $\sim$95\% val.\ accuracy in $\sim$50 epochs.}}
-\end{frame}
-
-
+\begin{comment}
 \begin{frame}{Federated Training on PC (MPI + FedAvg)}
   \begin{itemize}
     \item Federated set-up (FedAvg):
@@ -543,7 +546,7 @@ Reference: \href{https://github.com/niil87/Machine-Learning-for-IOT---Fall-2022-
 \end{frame}
 
 
-\begin{comment}
+
 \begin{frame}{Comparing Local vs Federated On-Device Training}
   \begin{itemize}
     \item Baseline: Each board trains independently on its own data.
