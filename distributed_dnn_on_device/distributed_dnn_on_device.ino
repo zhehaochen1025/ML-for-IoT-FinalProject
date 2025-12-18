@@ -14,7 +14,7 @@ extern const int first_layer_input_cnt;
 extern const int classes_cnt;
 
 /* ------- CONFIG ------- */
-#define DEVICE_TYPE WORKER // Which device is being exported: LEADER or WORKER?
+#define DEVICE_TYPE LEADER // Which device is being exported: LEADER or WORKER?
 #define DEBUG 0
 
 /*
@@ -88,8 +88,8 @@ void destroy() {
   Serial.println("Finished training, shutting down.");
   printAccuracy();
   
-  // 保存训练好的模型参数
-  Serial.println("\n========== 训练完成，输出模型参数 ==========");
+  // save model
+  Serial.println("\nTraining completed, saving model...");
   saveModel(iter_cnt);
   
 #if ENABLE_BLE

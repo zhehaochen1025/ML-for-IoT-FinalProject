@@ -96,12 +96,12 @@ void loop() {
     do_training(); // Local training 
     
   } else if (iter_cnt == EPOCH) {
-    // 训练完成后保存模型
-    Serial.println("\n训练完成！正在保存模型...");
+    // save model
+    Serial.println("\nTraining completed! Saving model...");
     saveModel(iter_cnt);
-    Serial.println("模型已保存到串口输出。请复制权重数据。");
-    Serial.println("按复位键重新开始训练。");
-    iter_cnt++;  // 防止重复保存
+    Serial.println("Model saved to serial output. Please copy the weight data.");
+    Serial.println("Press reset button to restart training.");
+    iter_cnt++;  // prevent duplicate save
   }
 
 }

@@ -1,0 +1,250 @@
+Epoch count (training count): 1
+Accuracy after local training:
+Training Accuracy: 0.80
+Validation Accuracy: 0.88
+Test Accuracy: 0.88
+Epoch count (training count): 2
+Accuracy after local training:
+Training Accuracy: 0.60
+Validation Accuracy: 0.75
+Test Accuracy: 0.62
+Epoch count (training count): 3
+Accuracy after local training:
+Training Accuracy: 0.90
+Validation Accuracy: 0.96
+Test Accuracy: 0.82
+Epoch count (training count): 4
+Accuracy after local training:
+Training Accuracy: 0.84
+Validation Accuracy: 0.88
+Test Accuracy: 0.85
+Epoch count (training count): 5
+Accuracy after local training:
+Training Accuracy: 0.70
+Validation Accuracy: 0.79
+Test Accuracy: 0.78
+Epoch count (training count): 6
+Accuracy after local training:
+Training Accuracy: 0.84
+Validation Accuracy: 0.83
+Test Accuracy: 0.78
+Epoch count (training count): 7
+Accuracy after local training:
+Training Accuracy: 0.88
+Validation Accuracy: 0.92
+Test Accuracy: 0.78
+Epoch count (training count): 8
+Accuracy after local training:
+Training Accuracy: 0.91
+Validation Accuracy: 0.96
+Test Accuracy: 0.82
+Epoch count (training count): 9
+Accuracy after local training:
+Training Accuracy: 0.89
+Validation Accuracy: 0.90
+Test Accuracy: 0.75
+Epoch count (training count): 10
+Accuracy after local training:
+Training Accuracy: 0.71
+Validation Accuracy: 0.81
+Test Accuracy: 0.75
+Epoch count (training count): 11
+Accuracy after local training:
+Training Accuracy: 0.88
+Validation Accuracy: 0.92
+Test Accuracy: 0.85
+Epoch count (training count): 12
+Accuracy after local training:
+Training Accuracy: 0.85
+Validation Accuracy: 0.94
+Test Accuracy: 0.78
+Epoch count (training count): 13
+Accuracy after local training:
+Training Accuracy: 0.88
+Validation Accuracy: 0.88
+Test Accuracy: 0.78
+Epoch count (training count): 14
+Accuracy after local training:
+Training Accuracy: 0.73
+Validation Accuracy: 0.81
+Test Accuracy: 0.78
+Epoch count (training count): 15
+Accuracy after local training:
+Training Accuracy: 0.72
+Validation Accuracy: 0.81
+Test Accuracy: 0.75
+Epoch count (training count): 16
+Accuracy after local training:
+Training Accuracy: 0.92
+Validation Accuracy: 0.92
+Test Accuracy: 0.80
+Epoch count (training count): 17
+Accuracy after local training:
+Training Accuracy: 0.91
+Validation Accuracy: 0.88
+Test Accuracy: 0.80
+Epoch count (training count): 18
+Accuracy after local training:
+Training Accuracy: 0.84
+Validation Accuracy: 0.90
+Test Accuracy: 0.93
+Epoch count (training count): 19
+Accuracy after local training:
+Training Accuracy: 0.91
+Validation Accuracy: 0.88
+Test Accuracy: 0.80
+Epoch count (training count): 20
+Accuracy after local training:
+Training Accuracy: 0.89
+Validation Accuracy: 0.94
+Test Accuracy: 0.85
+Epoch count (training count): 21
+Accuracy after local training:
+Training Accuracy: 0.91
+Validation Accuracy: 0.96
+Test Accuracy: 0.85
+Epoch count (training count): 22
+Accuracy after local training:
+Training Accuracy: 0.85
+Validation Accuracy: 0.92
+Test Accuracy: 0.85
+Epoch count (training count): 23
+Accuracy after local training:
+Training Accuracy: 0.90
+Validation Accuracy: 0.92
+Test Accuracy: 0.80
+Epoch count (training count): 24
+Accuracy after local training:
+Training Accuracy: 0.91
+Validation Accuracy: 0.98
+Test Accuracy: 0.80
+Epoch count (training count): 25
+Accuracy after local training:
+Training Accuracy: 0.82
+Validation Accuracy: 0.90
+Test Accuracy: 0.78
+Epoch count (training count): 26
+Accuracy after local training:
+Training Accuracy: 0.72
+Validation Accuracy: 0.79
+Test Accuracy: 0.75
+Epoch count (training count): 27
+Accuracy after local training:
+Training Accuracy: 0.92
+Validation Accuracy: 0.96
+Test Accuracy: 0.85
+Epoch count (training count): 28
+Accuracy after local training:
+Training Accuracy: 0.83
+Validation Accuracy: 0.90
+Test Accuracy: 0.78
+Epoch count (training count): 29
+Accuracy after local training:
+Training Accuracy: 0.73
+Validation Accuracy: 0.81
+Test Accuracy: 0.78
+Epoch count (training count): 30
+Accuracy after local training:
+Training Accuracy: 0.91
+Validation Accuracy: 0.94
+Test Accuracy: 0.78
+Epoch count (training count): 31
+Accuracy after local training:
+Training Accuracy: 0.95
+Validation Accuracy: 0.96
+Test Accuracy: 0.80
+Epoch count (training count): 32
+Accuracy after local training:
+Training Accuracy: 0.94
+Validation Accuracy: 0.94
+Test Accuracy: 0.80
+Epoch count (training count): 33
+Accuracy after local training:
+Training Accuracy: 0.94
+Validation Accuracy: 0.98
+Test Accuracy: 0.82
+Epoch count (training count): 34
+Accuracy after local training:
+Training Accuracy: 0.71
+Validation Accuracy: 0.79
+Test Accuracy: 0.75
+Epoch count (training count): 35
+Accuracy after local training:
+Training Accuracy: 0.94
+Validation Accuracy: 0.98
+Test Accuracy: 0.85
+Epoch count (training count): 36
+Accuracy after local training:
+Training Accuracy: 0.95
+Validation Accuracy: 1.00
+Test Accuracy: 0.85
+Epoch count (training count): 37
+Accuracy after local training:
+Training Accuracy: 0.95
+Validation Accuracy: 1.00
+Test Accuracy: 0.80
+Epoch count (training count): 38
+Accuracy after local training:
+Training Accuracy: 0.93
+Validation Accuracy: 0.92
+Test Accuracy: 0.80
+Epoch count (training count): 39
+Accuracy after local training:
+Training Accuracy: 0.83
+Validation Accuracy: 0.85
+Test Accuracy: 0.80
+Epoch count (training count): 40
+Accuracy after local training:
+Training Accuracy: 0.94
+Validation Accuracy: 0.94
+Test Accuracy: 0.88
+Epoch count (training count): 41
+Accuracy after local training:
+Training Accuracy: 0.88
+Validation Accuracy: 0.94
+Test Accuracy: 0.80
+Epoch count (training count): 42
+Accuracy after local training:
+Training Accuracy: 0.70
+Validation Accuracy: 0.79
+Test Accuracy: 0.75
+Epoch count (training count): 43
+Accuracy after local training:
+Training Accuracy: 0.95
+Validation Accuracy: 0.92
+Test Accuracy: 0.80
+Epoch count (training count): 44
+Accuracy after local training:
+Training Accuracy: 0.93
+Validation Accuracy: 0.92
+Test Accuracy: 0.80
+Epoch count (training count): 45
+Accuracy after local training:
+Training Accuracy: 0.95
+Validation Accuracy: 0.98
+Test Accuracy: 0.85
+Epoch count (training count): 46
+Accuracy after local training:
+Training Accuracy: 0.93
+Validation Accuracy: 0.90
+Test Accuracy: 0.80
+Epoch count (training count): 47
+Accuracy after local training:
+Training Accuracy: 0.94
+Validation Accuracy: 0.96
+Test Accuracy: 0.80
+Epoch count (training count): 48
+Accuracy after local training:
+Training Accuracy: 0.93
+Validation Accuracy: 0.92
+Test Accuracy: 0.80
+Epoch count (training count): 49
+Accuracy after local training:
+Training Accuracy: 0.93
+Validation Accuracy: 0.94
+Test Accuracy: 0.80
+Epoch count (training count): 50
+Accuracy after local training:
+Training Accuracy: 0.74
+Validation Accuracy: 0.81
+Test Accuracy: 0.78
