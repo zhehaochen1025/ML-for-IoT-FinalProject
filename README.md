@@ -78,14 +78,12 @@ Team Members: Haoran Li, Jiuen Feng,  Zhehao Chen, Yuhe Bian
   <img src="distributed_test/output/confusion_matrix_databyh.png" width="32%">
   <img src="distributed_test/output/confusion_matrix_datafje.png" width="32%">
   <img src="distributed_test/output/confusion_matrix_dataczh.png" width="32%">
-  
 </div>
 
 ## Training Metrics
 <div align="center">
-  <img src="distributed_test/output/plot_fd_leader.png" width="32%">
-  <img src="distributed_test/output/plot_fd_worker.png" width="32%">
-  
+  <img src="distributed_test/output/plot_fd_leader.png" width="50%">
+  <img src="distributed_test/output/plot_fd_worker.png" width="50%">
 </div>
 
 ## Project Directory Structure
