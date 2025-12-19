@@ -65,7 +65,14 @@ Team Members: Haoran Li, Jiuen Feng,  Zhehao Chen, Yuhe Bian
   5. Press reset buttons on both boards to initialize timers, then run `battle_center/battle_visualizer.py`
   6. A valid battle occurs when both boards press buttons and capture valid gestures within 2 seconds
 
-  
+### Results
+Confusion Matrix:
+BP_test_inference/output/confusion_matrix_mbyh_dbyh.png
+BP_test_inference/output/confusion_matrix_mbyh_dfje.png
+BP_test_inference/output/confusion_matrix_mbyh_dczh.png
+BP_test_inference/output/confusion_matrix_mfje_dfje.png
+BP_test_inference/output/confusion_matrix_mfje_dbyh.png
+BP_test_inference/output/confusion_matrix_mfje_dczh.png
 
 ## Project Directory Structure
 
