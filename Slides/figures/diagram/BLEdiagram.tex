@@ -6,85 +6,107 @@
 \begin{document}
 
 \begin{tikzpicture}[
-    node distance=0.8cm,
-    box/.style={rectangle, draw, thick, minimum width=2.2cm, minimum height=1.8cm, align=center, rounded corners, font=\small},
+    node distance=0.6cm,
+    box/.style={rectangle, draw, thick, minimum width=2.5cm, minimum height=2cm, align=center, rounded corners, font=\small},
     leader/.style={box, fill=blue!10},
     worker/.style={box, fill=green!10},
-    process/.style={rectangle, draw, fill=yellow!20, minimum width=1.8cm, minimum height=0.6cm, align=center, font=\footnotesize},
+    process/.style={rectangle, draw, fill=yellow!20, minimum width=2.3cm, minimum height=0.7cm, align=center, font=\small},
     arrow/.style={->, >=stealth, thick},
     dashedarrow/.style={->, >=stealth, thick, dashed},
-    label/.style={font=\footnotesize\itshape}
+    label/.style={font=\small\itshape}
 ]
 
 % Board A (Leader)
 \node[leader] (boardA) at (0,0) {
     \textbf{Board A}\\
     \textbf{Leader}\\
-    (BLE Peripheral)\\[0.1cm]
-    \footnotesize Advertises:\\
+    (BLE Peripheral)\\[0.2cm]
+    \small Advertises:\\
     \texttt{"MLLeader"}
 };
 
 % Board B (Worker)
-\node[worker] (boardB) at (6,0) {
+\node[worker] (boardB) at (8,0) {
     \textbf{Board B}\\
     \textbf{Worker}\\
-    (BLE Central)\\[0.1cm]
-    \footnotesize Scans \& Connects
+    (BLE Central)\\[0.2cm]
+    \small Scans \& Connects
 };
 
-% Process boxes for Board A
-\node[process, below=0.4cm of boardA] (trainA) {\texttt{do\_training()}};
-\node[process, below=0.25cm of trainA] (aggA) {\texttt{aggregate\_weights()}};
+% Board A process boxes (vertical chain)
+\node[process, below=0.5cm of boardA] (aggA) {\texttt{aggregate\_weights()}};
+\node[process, below=0.4cm of aggA] (sendA) {\texttt{send\_iteration\_data()}};
+\node[process, below=0.4cm of sendA] (trainA) {\texttt{do\_training()}};
 
-% Process boxes for Board B
-\node[process, below=0.4cm of boardB] (trainB) {\texttt{do\_training()}};
+% Board B process boxes (vertical chain)
+\node[process, below=0.5cm of boardB] (unpackB) {\texttt{UNPACK}};
+\node[process, below=0.4cm of unpackB] (trainB) {\texttt{do\_training()}};
+\node[process, below=0.4cm of trainB] (packB) {\texttt{PACK}};
 
-% Arrows showing communication flow
-% Step 1: Initial connection (horizontal line at top, parallel to others)
-\draw[dashedarrow, red] ($(boardB.west)+(0,0.6)$) -- node[above, label, yshift=3pt] {1. Connect} ($(boardA.east)+(0,0.6)$);
+% Communication arrows
+% Step 1: Connect (turn=-1) - positioned higher
+\draw[dashedarrow, red] ($(boardB.west)+(0,0.8)$) -- node[above, label, align=center, yshift=2pt] {1. Connect\\{\scriptsize (turn = -1)}} ($(boardA.east)+(0,0.8)$);
 
-% Step 2: Send global weights (upper middle)
-\draw[arrow, blue] ($(boardA.east)+(0,0.15)$) -- node[below, label, text width=1.8cm, align=center, yshift=-3pt] {2. Send\\Weights} ($(boardB.west)+(0,0.15)$);
+% Step 2: Send Weights (turn=1) - positioned lower, separated from red line
+\draw[arrow, blue] ($(boardA.east)+(0,0)$) -- node[below, label, align=center, yshift=-2pt] {2. Send\\Weights\\{\scriptsize (turn=1)}} ($(boardB.west)+(0,0)$);
 
-% Step 3: Receive and train
-\draw[arrow] (boardB) -- (trainB);
-\node[label, below=0.05cm of trainB] {4. Local Training};
+% Step 3: Send Updated (turn=0) - horizontal line between packB and aggA
+\draw[arrow, green!60!black] (packB.west) -- ($(packB.west)+(-1,0)$) -- ($(aggA.east)+(1,0)$) -- (aggA.east) node[midway, above, label, align=center] {3. Send\\Updated\\{\scriptsize (turn=0)}};
 
-% Step 4: Send updated weights back (lower middle)
-\draw[arrow, green!60!black] ($(boardB.west)+(0,-0.7)$) -- node[below, label, text width=1.8cm, align=center, yshift=-2pt] {3. Send\\Updated} ($(boardA.east)+(0,-0.7)$);
+% Local Training label
+\node[label, right=0.2cm of trainB, align=left] {Local\\Training};
 
-% Step 5: Aggregate
-\draw[arrow] (boardA) -- (trainA);
-\draw[arrow] (trainA) -- (aggA);
+% Vertical arrows for Board A
+\draw[arrow] (boardA) -- (aggA);
+\draw[arrow] (aggA) -- (sendA);
+\draw[arrow] (sendA) -- (trainA);
 
-% Iteration loop indicator (points to left center of Board A)
+% Vertical arrows for Board B
+\draw[arrow] (boardB) -- (unpackB);
+\draw[arrow] (unpackB) -- (trainB);
+\draw[arrow] (trainB) -- (packB);
+
+% Average formula (left side)
+\node[align=center, font=\small\itshape, left=0.3cm of aggA.west, anchor=east] (avgFormula) {
+    \textit{Average:}\\
+    $\frac{w_L+w_W}{2}$
+};
+
+% NextIter arrow and label - connects from trainA bottom to boardA left center
 \draw[arrow, thick, orange, line width=1.2pt] 
-  ($(aggA.south west)+(0.2,-0.15)$) 
-  -- ++(0,-0.4) 
-  -- ++(-0.8,0) 
-  |- (boardA.west) 
-  node[pos=0.25, left, label, xshift=-2pt] {Next\\Iter.};
+  ($(trainA.south)+(0,-0.2)$) 
+  -- ++(0,-0.6) 
+  -- ++(-2,0) 
+  |- (boardA.west);
+  
+\node[font=\small\itshape, orange, below=0.7cm of trainA.south, xshift=-1cm] {\textit{NextIter.}};
 
-% Weight data structure annotation
-\node[draw, dashed, fill=white, text width=2.8cm, align=left, font=\tiny, below=1cm of trainA] (data) {
+% ble_data_t structure (bottom left)
+\node[draw, dashed, fill=white, text width=3cm, align=left, font=\scriptsize, 
+      below=1.2cm of trainA.south, xshift=-0.5cm] (bledata) {
     \textbf{ble\_data\_t:}\\
     • \texttt{turn}: int8\_t\\
     • \texttt{batch\_id}: uint8\_t\\
     • \texttt{w[N]}: float[]
 };
 
-% Legend box (bottom right, below Board B training box)
-\node[draw, fill=gray!10, text width=5.5cm, align=left, font=\tiny, below=0.8cm of trainB.south] (legend) {
-    \textbf{Communication Protocol:}\\
-    • Weights split into batches (size: \texttt{BLE\_NBR\_WEIGHTS})\\
-    • Total batches: \texttt{NBR\_BATCHES\_ITER}\\
-    • Turn-based protocol ensures synchronization\\
-    • \texttt{turn=-1}: Connection established\\
-    • \texttt{turn=0}: Leader receives weights\\
-    • \texttt{turn=1+}: Worker's turn to send
+% Protocol box (bottom center-right)
+\node[draw, fill=white, text width=5cm, align=left, font=\scriptsize,
+      below=1.2cm of packB.south, xshift=0.5cm] (protocol) {
+    \textbf{Protocol:}\\
+    • Batches: \texttt{BLE\_NBR\_WEIGHTS=12}\\
+    • \texttt{turn=-1}: Connect\\
+    • \texttt{turn=0}: Worker$\rightarrow$Leader\\
+    • \texttt{turn=1}: Leader$\rightarrow$Worker\\
+    • Aggregation on Leader
 };
 
 \end{tikzpicture}
 
 \end{document}
+
+
+
+
+
+
