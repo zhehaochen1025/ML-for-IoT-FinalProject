@@ -75,6 +75,10 @@ Team Members: Haoran Li, Jiuen Feng,  Zhehao Chen, Yuhe Bian
   <img src="BP_test_inference/output/confusion_matrix_mfje_dfje.png" width="32%">
   <img src="BP_test_inference/output/confusion_matrix_mfje_dbyh.png" width="32%">
   <img src="BP_test_inference/output/confusion_matrix_mfje_dczh.png" width="32%">
+  <img src="distributed_test/output/confusion_matrix_databyh.png" width="32%">
+  <img src="distributed_test/output/confusion_matrix_datafje.png" width="32%">
+  <img src="distributed_test/output/confusion_matrix_dataczh.png" width="32%">
+  
 </div>
 
 ## Project Directory Structure
