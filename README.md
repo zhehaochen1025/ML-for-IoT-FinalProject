@@ -66,13 +66,16 @@ Team Members: Haoran Li, Jiuen Feng,  Zhehao Chen, Yuhe Bian
   6. A valid battle occurs when both boards press buttons and capture valid gestures within 2 seconds
 
 ### Results
-Confusion Matrix:
-BP_test_inference/output/confusion_matrix_mbyh_dbyh.png
-BP_test_inference/output/confusion_matrix_mbyh_dfje.png
-BP_test_inference/output/confusion_matrix_mbyh_dczh.png
-BP_test_inference/output/confusion_matrix_mfje_dfje.png
-BP_test_inference/output/confusion_matrix_mfje_dbyh.png
-BP_test_inference/output/confusion_matrix_mfje_dczh.png
+## Confusion Matrix
+
+<div align="center">
+  <img src="BP_test_inference/output/confusion_matrix_mbyh_dbyh.png" width="32%">
+  <img src="BP_test_inference/output/confusion_matrix_mbyh_dfje.png" width="32%">
+  <img src="BP_test_inference/output/confusion_matrix_mbyh_dczh.png" width="32%">
+  <img src="BP_test_inference/output/confusion_matrix_mfje_dfje.png" width="32%">
+  <img src="BP_test_inference/output/confusion_matrix_mfje_dbyh.png" width="32%">
+  <img src="BP_test_inference/output/confusion_matrix_mfje_dczh.png" width="32%">
+</div>
 
 ## Project Directory Structure
 
