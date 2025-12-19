@@ -49,10 +49,10 @@
 
 % Step 3: Receive and train
 \draw[arrow] (boardB) -- (trainB);
-\node[label, below=0.05cm of trainB] {3. Local Training};
+\node[label, below=0.05cm of trainB] {4. Local Training};
 
 % Step 4: Send updated weights back (lower middle)
-\draw[arrow, green!60!black] ($(boardB.west)+(0,-0.7)$) -- node[below, label, text width=1.8cm, align=center, yshift=-2pt] {4. Send\\Updated} ($(boardA.east)+(0,-0.7)$);
+\draw[arrow, green!60!black] ($(boardB.west)+(0,-0.7)$) -- node[below, label, text width=1.8cm, align=center, yshift=-2pt] {3. Send\\Updated} ($(boardA.east)+(0,-0.7)$);
 
 % Step 5: Aggregate
 \draw[arrow] (boardA) -- (trainA);

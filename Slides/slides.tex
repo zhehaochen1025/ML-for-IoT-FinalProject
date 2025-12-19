@@ -182,13 +182,13 @@
 \end{comment}
 
 % ===================== Section 3: On-Device NN =====================
-\section{On-Device Neural Network}
+\section{Neural Network Design}
 
 \begin{frame}{Network Architecture on Nano 33 BLE}
   \begin{itemize}
     \item Simple fully connected network:
     \[
-      75 \rightarrow 32 \rightarrow \text{classes\_cnt}.
+      75 \rightarrow 64 \rightarrow \text{classes\_cnt}.
     \]
     \item Activation:
       \begin{itemize}
@@ -290,10 +290,11 @@
 
 \begin{frame}{From Single Board to Federated Setup}
   \begin{itemize}
-    \item We have  two Nano 33 BLE boards:
-      \begin{itemize}
-        \item Each board has its own local dataset from different users' gesture recordings.
-      \end{itemize}
+
+        \item Two boards have their own local dataset from different users' gesture recordings.
+        \item Network: 
+      $75 \rightarrow 32 \rightarrow \text{classes\_cnt}$
+     due to the BLE Maximum Transmission Unit
     \item Idea: In each round
       \begin{itemize}
         \item Each board trains locally for several epochs.
@@ -640,34 +641,7 @@ Reference: \href{https://github.com/niil87/Machine-Learning-for-IOT---Fall-2022-
 
 \end{frame}
 
-\begin{frame}{SpellGame Battle}
-\textbf{Stability Issues Observed:}
-\begin{itemize}
-  \item Interface occasionally fails to \textbf{synchronize or display both gestures} simultaneously.
-  \item \textbf{Hypothesized causes:}
-  \begin{itemize}
-    \item BLE packet delays disrupt real-time data flow.
-    \item Temporal misalignment: users trigger gestures at different moments.
-  \end{itemize}
-\end{itemize}
-\end{frame}
 
-\begin{frame}{SpellGame Battle}
-\begin{itemize}
-  \item Two Nano 33 BLE boards (NODE\_A \& NODE\_B) perform \textbf{real-time gesture inference} on 2-second IMU windows.
-  \item PC visualizes gestures and determines winner using rock-paper-scissors rules:
-  \begin{center}
-  circle > wave > peak > circle
-  \end{center}
-  \item Predicted gestures are transmitted to the \textbf{IMU Battle Visualizer} (PC-based GUI).
-  \item PC displays:
-  \begin{itemize}
-    \item Both players' detected gestures simultaneously.
-    \item \textbf{History log} of past matches.
-    \item \textbf{Battle outcome} to verify inference accuracy and cross-user generalization.
-  \end{itemize}
-\end{itemize}
-\end{frame}
 \begin{frame}
 \vspace{0.4em}
 \centering
@@ -704,7 +678,7 @@ Reference: \href{https://github.com/niil87/Machine-Learning-for-IOT---Fall-2022-
       \end{itemize}
     \item Implemented a small \textbf{on-device neural network}:
       \begin{itemize}
-        \item 75--32--\texttt{classes\_cnt}, ReLU + softmax, SGD training.
+        \item 75--64--\texttt{classes\_cnt}, ReLU + softmax, SGD training.
       \end{itemize}
     \item Designed and tested a \textbf{federated learning prototype}:
       \begin{itemize}
