@@ -65,7 +65,26 @@ Team Members: Haoran Li, Jiuen Feng,  Zhehao Chen, Yuhe Bian
   5. Press reset buttons on both boards to initialize timers, then run `battle_center/battle_visualizer.py`
   6. A valid battle occurs when both boards press buttons and capture valid gestures within 2 seconds
 
-  
+### Results
+## Confusion Matrix
+
+<div align="center">
+  <img src="BP_test_inference/output/confusion_matrix_mbyh_dbyh.png" width="32%">
+  <img src="BP_test_inference/output/confusion_matrix_mbyh_dfje.png" width="32%">
+  <img src="BP_test_inference/output/confusion_matrix_mbyh_dczh.png" width="32%">
+  <img src="BP_test_inference/output/confusion_matrix_mfje_dfje.png" width="32%">  
+  <img src="BP_test_inference/output/confusion_matrix_mfje_dbyh.png" width="32%">
+  <img src="BP_test_inference/output/confusion_matrix_mfje_dczh.png" width="32%">
+  <img src="distributed_test/output/confusion_matrix_databyh.png" width="32%">
+  <img src="distributed_test/output/confusion_matrix_datafje.png" width="32%">
+  <img src="distributed_test/output/confusion_matrix_dataczh.png" width="32%">
+</div>
+
+## Training Metrics
+<div align="center">
+  <img src="distributed_test/output/plot_fd_leader.png" width="50%">
+  <img src="distributed_test/output/plot_fd_worker.png" width="50%">
+</div>
 
 ## Project Directory Structure
 
